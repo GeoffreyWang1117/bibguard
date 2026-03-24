@@ -7,7 +7,7 @@ from typing import Optional
 import requests
 
 from ._common import HEADERS, rate_limit
-from ref_check.matching import token_similarity, extract_first_surname
+from bibguard.matching import token_similarity, extract_first_surname
 
 
 def query_s2(title: str, bib_first_author: str = "") -> Optional[dict]:

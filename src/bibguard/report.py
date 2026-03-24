@@ -6,7 +6,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ref_check.core import VerificationResult
+    from bibguard.core import VerificationResult
 
 _ICON = {"OK": "✅", "WARN": "⚠️", "FAIL": "❌"}
 
@@ -15,7 +15,7 @@ def generate_report(results: list[VerificationResult],
                     tex_issues: list[dict],
                     dup_issues: list[dict]) -> str:
     """Generate Markdown verification report."""
-    lines = ["# ref-check Report\n"]
+    lines = ["# bibguard Report\n"]
 
     ok = sum(1 for r in results if r.overall == "OK")
     warn = sum(1 for r in results if r.overall == "WARN")

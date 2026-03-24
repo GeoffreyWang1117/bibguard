@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ref_check.core import VerificationResult
+    from bibguard.core import VerificationResult
 
 
 def generate_fixed_bib(bib_path: str, results: list[VerificationResult]) -> str:

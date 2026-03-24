@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from ref_check.matching import (
+from bibguard.matching import (
     extract_first_surname,
     match_authors,
     match_title,
@@ -18,12 +18,12 @@ from ref_check.matching import (
     strip_accents,
     token_similarity,
 )
-from ref_check.parsers.bibtex import extract_arxiv_id, parse_bib
-from ref_check.sources.arxiv import query_arxiv
-from ref_check.sources.crossref import query_crossref
-from ref_check.sources.dblp import query_dblp
-from ref_check.sources.openalex import query_openalex
-from ref_check.sources.s2 import query_s2
+from bibguard.parsers.bibtex import extract_arxiv_id, parse_bib
+from bibguard.sources.arxiv import query_arxiv
+from bibguard.sources.crossref import query_crossref
+from bibguard.sources.dblp import query_dblp
+from bibguard.sources.openalex import query_openalex
+from bibguard.sources.s2 import query_s2
 
 
 class VerificationResult:
@@ -234,11 +234,11 @@ def verify_entry(entry: dict, verbose: bool = False) -> VerificationResult:
         if has_phantom_doi:
             result.add_check("hallucination_risk", "WARN",
                              "Search found a similar paper but DOI doesn't resolve "
-                             "-- verify this is the correct reference", "ref-check")
+                             "-- verify this is the correct reference", "bibguard")
         if has_phantom_arxiv:
             result.add_check("hallucination_risk", "WARN",
                              "Search found a similar paper but arXiv ID doesn't exist "
-                             "-- verify this is the correct reference", "ref-check")
+                             "-- verify this is the correct reference", "bibguard")
 
     return result
 
@@ -246,9 +246,9 @@ def verify_entry(entry: dict, verbose: bool = False) -> VerificationResult:
 def verify_bib(bib_path: str, tex_path: str | None = None,
                verbose: bool = False) -> tuple[list[VerificationResult], str]:
     """Verify all entries in a .bib file. Returns (results, markdown_report)."""
-    from ref_check.duplicates import detect_duplicates
-    from ref_check.report import generate_report
-    from ref_check.tex_audit import audit_tex_bib
+    from bibguard.duplicates import detect_duplicates
+    from bibguard.report import generate_report
+    from bibguard.tex_audit import audit_tex_bib
 
     entries = parse_bib(bib_path)
     results = []

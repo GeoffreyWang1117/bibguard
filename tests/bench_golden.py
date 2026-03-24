@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Benchmark ref-check against the 58-case golden test set.
+"""Benchmark bibguard against the 58-case golden test set.
 
 The golden test set contains publicly available references:
 - 10 real papers (well-known, should pass)
@@ -21,8 +21,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from ref_check.core import verify_entry
-from ref_check.parsers.bibtex import parse_bib
+from bibguard.core import verify_entry
+from bibguard.parsers.bibtex import parse_bib
 
 
 def main() -> None:
@@ -36,7 +36,7 @@ def main() -> None:
     entries = parse_bib(str(bib_path))
     labels = json.loads(labels_path.read_text())
 
-    print(f"\nref-check benchmark — {len(entries)} entries\n")
+    print(f"\nbibguard benchmark — {len(entries)} entries\n")
     print(f"{'#':>3}  {'Status':<6} {'Category':<14} {'Key':<35} Sources")
     print("─" * 85)
 

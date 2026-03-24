@@ -7,7 +7,7 @@ from typing import Optional
 import requests
 
 from ._common import HEADERS, rate_limit
-from ref_check.matching import token_similarity, extract_first_surname
+from bibguard.matching import token_similarity, extract_first_surname
 
 
 def query_openalex(title: str, bib_first_author: str = "") -> Optional[dict]:
@@ -17,7 +17,7 @@ def query_openalex(title: str, bib_first_author: str = "") -> Optional[dict]:
     params = {
         "search": title,
         "per_page": 5,
-        "mailto": "ref-check@example.com",
+        "mailto": "bibguard@example.com",
     }
     try:
         r = requests.get(url, params=params, headers=HEADERS, timeout=15)

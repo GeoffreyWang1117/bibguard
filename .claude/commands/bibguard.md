@@ -1,14 +1,14 @@
-Run the ref-check citation verification tool on a .bib file.
+Run the bibguard citation verification tool on a .bib file.
 
-Usage: /ref-check <bib-file> [--tex <tex-file>] [--fix]
+Usage: /bibguard <bib-file> [--tex <tex-file>] [--fix]
 
 Instructions:
 1. Parse the user's arguments. The first argument is the .bib file path. Optional: --tex for cross-audit, --fix to generate auto-corrected .bib.
 2. Run the verification:
    ```
-   ref-check <bib-file> [--tex <tex-file>] [--out /tmp/refcheck_report.md] [--fix /tmp/refcheck_fixed.bib]
+   bibguard <bib-file> [--tex <tex-file>] [--out /tmp/refcheck_report.md] [--fix /tmp/refcheck_fixed.bib]
    ```
-   If `ref-check` is not on PATH, use: `python -m ref_check.cli <bib-file> ...`
+   If `bibguard` is not on PATH, use: `python -m bibguard.cli <bib-file> ...`
 3. Read the output report and present results to the user.
 4. For any WARN or FAIL entries:
    - Summarize what went wrong (phantom DOI, author mismatch, not found, etc.)

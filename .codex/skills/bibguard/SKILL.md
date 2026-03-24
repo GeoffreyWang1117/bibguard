@@ -1,24 +1,24 @@
 ---
-name: ref-check
+name: bibguard
 description: Run citation verification on a .bib file. Detects hallucinated references, phantom DOIs, author mismatches, and retracted papers. Use when user asks to check, verify, or validate references/citations in a paper.
 ---
 
-# ref-check: Citation Verification
+# bibguard: Citation Verification
 
-Run the ref-check tool to verify references in a .bib file.
+Run the bibguard tool to verify references in a .bib file.
 
 ## Usage
 
 ```
-ref-check <bib-file> [--tex <tex-file>] [--out report.md] [--fix fixed.bib] [--json]
+bibguard <bib-file> [--tex <tex-file>] [--out report.md] [--fix fixed.bib] [--json]
 ```
 
-If `ref-check` is not on PATH, use: `pip install ref-check && ref-check <bib-file>`
+If `bibguard` is not on PATH, use: `pip install bibguard && bibguard <bib-file>`
 
 ## Instructions
 
 1. Parse the user's request. Identify the .bib file path and any optional flags.
-2. Run verification: `ref-check <bib-file> --out /tmp/refcheck_report.md`
+2. Run verification: `bibguard <bib-file> --out /tmp/refcheck_report.md`
 3. Read the output report and present results.
 4. For FAIL entries:
    - **phantom_doi / phantom_arxiv**: The identifier has valid format but doesn't resolve. This is the strongest hallucination signal. Search the web to find the correct reference.

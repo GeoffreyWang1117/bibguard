@@ -1,32 +1,32 @@
 ---
-description: Citation verification for academic papers using ref-check
+description: Citation verification for academic papers using bibguard
 globs: ["*.bib", "*.tex"]
 ---
 
-# ref-check Integration
+# bibguard Integration
 
-When the user asks to verify, check, or validate references in a .bib file, use the `ref-check` CLI tool.
+When the user asks to verify, check, or validate references in a .bib file, use the `bibguard` CLI tool.
 
 ## Setup
 
 ```bash
-pip install ref-check
+pip install bibguard
 ```
 
 ## Commands
 
 ```bash
 # Basic verification
-ref-check references.bib
+bibguard references.bib
 
 # With TeX cross-audit
-ref-check references.bib --tex main.tex
+bibguard references.bib --tex main.tex
 
 # Save report + auto-fix
-ref-check references.bib --out report.md --fix fixed.bib
+bibguard references.bib --out report.md --fix fixed.bib
 
 # JSON output for programmatic use
-ref-check references.bib --json --out report.json
+bibguard references.bib --json --out report.json
 ```
 
 ## Interpreting Results

@@ -10,7 +10,7 @@ import bibtexparser
 from bibtexparser.bparser import BibTexParser
 from bibtexparser.customization import convert_to_unicode
 
-from ref_check.matching import strip_latex
+from bibguard.matching import strip_latex
 
 
 def extract_arxiv_id(entry: dict) -> Optional[str]:

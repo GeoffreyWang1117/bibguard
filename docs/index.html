@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ref-check — Detect hallucinated citations in academic papers</title>
+<title>bibguard — Detect hallucinated citations in academic papers</title>
 <meta name="description" content="Open-source CLI tool to verify every reference in your .bib file. Catches phantom DOIs, AI-fabricated citations, retracted papers, and metadata errors.">
-<meta property="og:title" content="ref-check — Citation Verification for Academic Papers">
+<meta property="og:title" content="bibguard — Citation Verification for Academic Papers">
 <meta property="og:description" content="One command to catch hallucinated references. 100% recall on fabricated citations. Open source, zero config.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://geoffreywang1117.github.io/ref-check/">
+<meta property="og:url" content="https://geoffreywang1117.github.io/bibguard/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ref-check — Detect hallucinated citations">
-<meta name="twitter:description" content="pip install ref-check. One command to verify your .bib file against 5 scholarly databases.">
+<meta name="twitter:title" content="bibguard — Detect hallucinated citations">
+<meta name="twitter:description" content="pip install bibguard. One command to verify your .bib file against 5 scholarly databases.">
 <style>
   :root {
     --bg: #0d1117;
@@ -244,17 +244,17 @@
 
   <!-- Hero -->
   <section class="hero">
-    <h1><span>ref-check</span></h1>
+    <h1><span>bibguard</span></h1>
     <p class="tagline">
       One command to detect hallucinated, broken, and retracted citations in your paper.
     </p>
     <div class="install-box">
-      <span class="prompt">$</span> pip install ref-check
+      <span class="prompt">$</span> pip install bibguard
     </div>
     <div class="links">
-      <a href="https://github.com/GeoffreyWang1117/ref-check" class="btn-primary">GitHub</a>
-      <a href="https://pypi.org/project/ref-check/" class="btn-secondary">PyPI</a>
-      <a href="https://github.com/GeoffreyWang1117/ref-check/blob/main/README.md" class="btn-secondary">Docs</a>
+      <a href="https://github.com/GeoffreyWang1117/bibguard" class="btn-primary">GitHub</a>
+      <a href="https://pypi.org/project/bibguard/" class="btn-secondary">PyPI</a>
+      <a href="https://github.com/GeoffreyWang1117/bibguard/blob/main/README.md" class="btn-secondary">Docs</a>
     </div>
   </section>
 
@@ -264,11 +264,11 @@
       <span class="terminal-dot dot-red"></span>
       <span class="terminal-dot dot-yellow"></span>
       <span class="terminal-dot dot-green"></span>
-      <span class="terminal-title">ref-check paper.bib</span>
+      <span class="terminal-title">bibguard paper.bib</span>
     </div>
     <div class="terminal-body">
 <pre>
-  ref-check v0.1.0
+  bibguard v0.2.0
   paper.bib — 42 entries
 
   <span class="m">[ 1/42]</span> vaswani2017attention                 <span class="g">&#x2705;</span> crossref, dblp
@@ -331,7 +331,7 @@
     <h2>Benchmark</h2>
     <p style="color:var(--text-muted); margin-bottom: 20px;">
       58-case golden test set with known hallucinated, retracted, chimera, and real papers.
-      <a href="https://github.com/GeoffreyWang1117/ref-check/blob/main/tests/bench_golden.py">Reproduce it yourself.</a>
+      <a href="https://github.com/GeoffreyWang1117/bibguard/blob/main/tests/bench_golden.py">Reproduce it yourself.</a>
     </p>
     <table>
       <thead>
@@ -367,11 +367,11 @@
     <div class="integrations">
       <div class="integration-card">
         <div class="name">Claude Code</div>
-        <code>/ref-check paper.bib</code>
+        <code>/bibguard paper.bib</code>
       </div>
       <div class="integration-card">
         <div class="name">OpenAI Codex</div>
-        <code>/ref-check paper.bib</code>
+        <code>/bibguard paper.bib</code>
       </div>
       <div class="integration-card">
         <div class="name">Cursor</div>
@@ -379,7 +379,7 @@
       </div>
       <div class="integration-card">
         <div class="name">Any CLI agent</div>
-        <code>ref-check --json</code>
+        <code>bibguard --json</code>
       </div>
     </div>
   </section>
@@ -388,7 +388,7 @@
   <section>
     <h2>Need deeper verification?</h2>
     <p style="color:var(--text-muted); max-width: 600px;">
-      ref-check handles L0 (existence &amp; metadata verification).
+      bibguard handles L0 (existence &amp; metadata verification).
       For semantic NLI, citation intent classification, graph anomaly detection, and Bayesian risk scoring, see
       <a href="https://github.com/GeoffreyWang1117/IntegriRef"><strong>IntegriRef</strong></a> — the full L0-L4 verification stack.
     </p>
@@ -400,9 +400,9 @@
   <div class="container">
     <p>
       Apache 2.0 &middot;
-      <a href="https://github.com/GeoffreyWang1117/ref-check">GitHub</a> &middot;
-      <a href="https://pypi.org/project/ref-check/">PyPI</a> &middot;
-      <a href="https://github.com/GeoffreyWang1117/ref-check/blob/main/CONTRIBUTORS.md">Contributors</a>
+      <a href="https://github.com/GeoffreyWang1117/bibguard">GitHub</a> &middot;
+      <a href="https://pypi.org/project/bibguard/">PyPI</a> &middot;
+      <a href="https://github.com/GeoffreyWang1117/bibguard/blob/main/CONTRIBUTORS.md">Contributors</a>
     </p>
   </div>
 </footer>

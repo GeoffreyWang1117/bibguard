@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 
-HEADERS = {"User-Agent": "ref-check/1.0 (academic citation verifier; https://github.com/GeoffreyWang1117/ref-check)"}
+HEADERS = {"User-Agent": "bibguard/1.0 (academic citation verifier; https://github.com/GeoffreyWang1117/bibguard)"}
 
 _last_call: dict[str, float] = {}
 RATE_LIMITS = {"arxiv": 3.0, "crossref": 1.0, "dblp": 1.0, "s2": 1.0, "openalex": 0.5}

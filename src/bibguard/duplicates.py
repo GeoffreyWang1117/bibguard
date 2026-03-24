@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ref_check.matching import token_similarity
+from bibguard.matching import token_similarity
 
 
 def detect_duplicates(entries: list[dict]) -> list[dict]:

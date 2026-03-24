@@ -8,7 +8,7 @@ from typing import Optional
 import requests
 
 from ._common import HEADERS, rate_limit
-from ref_check.matching import token_similarity, extract_first_surname
+from bibguard.matching import token_similarity, extract_first_surname
 
 
 def _clean_dblp_author(name: str) -> str:

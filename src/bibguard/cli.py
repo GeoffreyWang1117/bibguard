@@ -1,4 +1,4 @@
-"""Command-line interface for ref-check."""
+"""Command-line interface for bibguard."""
 
 from __future__ import annotations
 
@@ -7,19 +7,19 @@ import sys
 import time
 from pathlib import Path
 
-from ref_check.autofix import generate_fixed_bib
-from ref_check.core import VerificationResult, verify_entry
-from ref_check.duplicates import detect_duplicates
-from ref_check.parsers.bibtex import parse_bib
-from ref_check.report import generate_report
-from ref_check.tex_audit import audit_tex_bib
+from bibguard.autofix import generate_fixed_bib
+from bibguard.core import VerificationResult, verify_entry
+from bibguard.duplicates import detect_duplicates
+from bibguard.parsers.bibtex import parse_bib
+from bibguard.report import generate_report
+from bibguard.tex_audit import audit_tex_bib
 
 _ICON = {"OK": "✅", "WARN": "⚠️ ", "FAIL": "❌"}
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
-        prog="ref-check",
+        prog="bibguard",
         description="Detect hallucinated and broken citations in academic papers",
     )
     parser.add_argument("bib", help=".bib file path")
@@ -34,13 +34,13 @@ def main(argv: list[str] | None = None) -> None:
 
     bib_path = args.bib
     if not Path(bib_path).exists():
-        print(f"ref-check: error: file not found: {bib_path}", file=sys.stderr)
+        print(f"bibguard: error: file not found: {bib_path}", file=sys.stderr)
         sys.exit(2)
 
     # -- Parse --
     entries = parse_bib(bib_path)
     total = len(entries)
-    print(f"\n  ref-check v{_get_version()}")
+    print(f"\n  bibguard v{_get_version()}")
     print(f"  {bib_path} — {total} entries\n")
 
     # -- Verify --
@@ -145,7 +145,7 @@ def main(argv: list[str] | None = None) -> None:
 
 def _get_version() -> str:
     try:
-        from ref_check import __version__
+        from bibguard import __version__
         return __version__
     except ImportError:
         return "unknown"
