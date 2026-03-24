@@ -14,6 +14,8 @@ pip install bibguard
 bibguard paper.bib
 ```
 
+![bibguard architecture](docs/figures/architecture.png)
+
 [Landing Page](https://geoffreywang1117.github.io/bibguard/) | [PyPI](https://pypi.org/project/bibguard/) | [Changelog](CHANGELOG.md)
 
 ---
