@@ -11,3 +11,4 @@ build/
 .coverage
 htmlcov/
 .mypy_cache/
+promo/
