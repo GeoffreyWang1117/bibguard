@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ref-check — Detect hallucinated citations in academic papers</title>
+<meta name="description" content="Open-source CLI tool to verify every reference in your .bib file. Catches phantom DOIs, AI-fabricated citations, retracted papers, and metadata errors.">
+<meta property="og:title" content="ref-check — Citation Verification for Academic Papers">
+<meta property="og:description" content="One command to catch hallucinated references. 100% recall on fabricated citations. Open source, zero config.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://geoffreywang1117.github.io/ref-check/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ref-check — Detect hallucinated citations">
+<meta name="twitter:description" content="pip install ref-check. One command to verify your .bib file against 5 scholarly databases.">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --font: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* Hero */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero .tagline {
+    font-size: 1.25rem;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 32px;
+  }
+  .hero .install-box {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 28px;
+    font-family: var(--font);
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    user-select: all;
+  }
+  .hero .install-box .prompt { color: var(--text-muted); }
+  .hero .links {
+    margin-top: 20px;
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .hero .links a {
+    display: inline-block;
+    padding: 10px 24px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: opacity 0.15s;
+  }
+  .hero .links a:hover { opacity: 0.85; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff !important; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--border); color: var(--text) !important; }
+
+  /* Terminal demo */
+  .terminal {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 40px 0;
+    font-family: var(--font);
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .terminal-bar {
+    background: var(--surface);
+    padding: 10px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .terminal-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .dot-red { background: #ff5f57; }
+  .dot-yellow { background: #febc2e; }
+  .dot-green { background: #28c840; }
+  .terminal-title {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-left: 8px;
+  }
+  .terminal-body { padding: 20px; overflow-x: auto; }
+  .terminal-body .g { color: var(--green); }
+  .terminal-body .y { color: var(--yellow); }
+  .terminal-body .r { color: var(--red); }
+  .terminal-body .m { color: var(--text-muted); }
+  .terminal-body .b { color: var(--accent); }
+
+  /* Sections */
+  section { padding: 60px 0; }
+  section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+    font-weight: 700;
+  }
+
+  /* Feature grid */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+  }
+  .feature-card h3 {
+    font-size: 1.05rem;
+    margin-bottom: 8px;
+  }
+  .feature-card p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+  .feature-icon {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  /* Benchmark table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td:last-child { font-family: var(--font); }
+
+  /* Sources */
+  .sources {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .source-badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+  }
+  .source-badge .name { font-weight: 700; font-size: 1rem; }
+  .source-badge .desc { color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; }
+
+  /* AI integrations */
+  .integrations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .integration-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+  }
+  .integration-card .name { font-weight: 700; margin-bottom: 6px; }
+  .integration-card code {
+    font-family: var(--font);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--bg);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 6px;
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  footer a { color: var(--text-muted); }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 2rem; }
+    .hero .install-box { font-size: 0.9rem; padding: 10px 16px; }
+    .terminal-body { font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1><span>ref-check</span></h1>
+    <p class="tagline">
+      One command to detect hallucinated, broken, and retracted citations in your paper.
+    </p>
+    <div class="install-box">
+      <span class="prompt">$</span> pip install ref-check
+    </div>
+    <div class="links">
+      <a href="https://github.com/GeoffreyWang1117/ref-check" class="btn-primary">GitHub</a>
+      <a href="https://pypi.org/project/ref-check/" class="btn-secondary">PyPI</a>
+      <a href="https://github.com/GeoffreyWang1117/ref-check/blob/main/README.md" class="btn-secondary">Docs</a>
+    </div>
+  </section>
+
+  <!-- Terminal demo -->
+  <div class="terminal">
+    <div class="terminal-bar">
+      <span class="terminal-dot dot-red"></span>
+      <span class="terminal-dot dot-yellow"></span>
+      <span class="terminal-dot dot-green"></span>
+      <span class="terminal-title">ref-check paper.bib</span>
+    </div>
+    <div class="terminal-body">
+<pre>
+  ref-check v0.1.0
+  paper.bib — 42 entries
+
+  <span class="m">[ 1/42]</span> vaswani2017attention                 <span class="g">&#x2705;</span> crossref, dblp
+  <span class="m">[ 2/42]</span> he2016resnet                         <span class="g">&#x2705;</span> crossref, s2
+  <span class="m">[ 3/42]</span> fake_quantum_paper                   <span class="r">&#x274C;</span> no match
+  <span class="m">[ 4/42]</span> wakefield1998mmr                     <span class="y">&#x26A0;&#xFE0F;</span>  crossref
+  <span class="m"> ...</span>
+  <span class="m">[42/42]</span> brown2020gpt3                        <span class="g">&#x2705;</span> s2, openalex
+
+  ──────────────────────────────────────────────────
+  <span class="g">&#x2705; 38</span>  <span class="y">&#x26A0;&#xFE0F;  2</span>  <span class="r">&#x274C; 2</span>  (42 entries in 67.3s)
+
+  FAIL entries:
+    <span class="r">&#x274C;</span> fake_quantum_paper — <span class="r">phantom_doi</span>
+    <span class="r">&#x274C;</span> halluc_gpt_ref_7 — <span class="r">verification</span>
+  ──────────────────────────────────────────────────
+</pre>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section>
+    <h2>Features</h2>
+    <div class="features">
+      <div class="feature-card">
+        <span class="feature-icon">&#x1F50D;</span>
+        <h3>5-Source Cascade</h3>
+        <p>Queries arXiv, Crossref, DBLP, Semantic Scholar, and OpenAlex. Falls back gracefully across sources.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#x1F6A8;</span>
+        <h3>Phantom ID Detection</h3>
+        <p>Catches DOIs and arXiv IDs that look valid but don't resolve — the strongest hallucination signal.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#x1F4A5;</span>
+        <h3>Kill-Shot Logic</h3>
+        <p>A phantom ID cannot be overridden by a similar search result. No false negatives on fabricated identifiers.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#x1F4DD;</span>
+        <h3>TeX Cross-Audit</h3>
+        <p>Find \cite{key} with no .bib entry, and orphan entries that are never cited.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#x1F527;</span>
+        <h3>Auto-Fix</h3>
+        <p>Generates a corrected .bib with missing DOIs and eprint IDs filled in from API results.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">&#x1F4E6;</span>
+        <h3>Minimal Dependencies</h3>
+        <p>Core needs only <code>requests</code> + <code>bibtexparser</code>. Optional RapidFuzz for better matching.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benchmark -->
+  <section>
+    <h2>Benchmark</h2>
+    <p style="color:var(--text-muted); margin-bottom: 20px;">
+      58-case golden test set with known hallucinated, retracted, chimera, and real papers.
+      <a href="https://github.com/GeoffreyWang1117/ref-check/blob/main/tests/bench_golden.py">Reproduce it yourself.</a>
+    </p>
+    <table>
+      <thead>
+        <tr><th>Category</th><th>Metric</th><th>Result</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Hallucinated (14 fabricated)</td><td>Detected as FAIL</td><td><strong style="color:var(--green)">14/14 (100%)</strong></td></tr>
+        <tr><td>Chimera (5 mixed-metadata)</td><td>Detected as &ge; WARN</td><td><strong style="color:var(--green)">5/5 (100%)</strong></td></tr>
+        <tr><td>Real papers (10 legitimate)</td><td>False positive (FAIL)</td><td>1/10 (10%)</td></tr>
+        <tr><td>Retracted (28 retractions)</td><td>Any issue flagged</td><td>19/28 (68%)</td></tr>
+        <tr><td>Runtime</td><td>58 entries</td><td>95s (~1.6s/entry)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Sources -->
+  <section>
+    <h2>API Sources</h2>
+    <p style="color:var(--text-muted); margin-bottom: 8px;">No API keys required. All queries respect rate limits.</p>
+    <div class="sources">
+      <div class="source-badge"><div class="name">arXiv</div><div class="desc">ID resolution</div></div>
+      <div class="source-badge"><div class="name">Crossref</div><div class="desc">DOI resolution</div></div>
+      <div class="source-badge"><div class="name">DBLP</div><div class="desc">CS gold standard</div></div>
+      <div class="source-badge"><div class="name">Semantic Scholar</div><div class="desc">200M+ papers</div></div>
+      <div class="source-badge"><div class="name">OpenAlex</div><div class="desc">250M+ works</div></div>
+    </div>
+  </section>
+
+  <!-- AI Integrations -->
+  <section>
+    <h2>AI Assistant Integration</h2>
+    <p style="color:var(--text-muted); margin-bottom: 8px;">Ships with skill definitions for major AI coding assistants.</p>
+    <div class="integrations">
+      <div class="integration-card">
+        <div class="name">Claude Code</div>
+        <code>/ref-check paper.bib</code>
+      </div>
+      <div class="integration-card">
+        <div class="name">OpenAI Codex</div>
+        <code>/ref-check paper.bib</code>
+      </div>
+      <div class="integration-card">
+        <div class="name">Cursor</div>
+        <code>auto-triggered on .bib</code>
+      </div>
+      <div class="integration-card">
+        <div class="name">Any CLI agent</div>
+        <code>ref-check --json</code>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep verification -->
+  <section>
+    <h2>Need deeper verification?</h2>
+    <p style="color:var(--text-muted); max-width: 600px;">
+      ref-check handles L0 (existence &amp; metadata verification).
+      For semantic NLI, citation intent classification, graph anomaly detection, and Bayesian risk scoring, see
+      <a href="https://github.com/GeoffreyWang1117/IntegriRef"><strong>IntegriRef</strong></a> — the full L0-L4 verification stack.
+    </p>
+  </section>
+
+</div>
+
+<footer>
+  <div class="container">
+    <p>
+      Apache 2.0 &middot;
+      <a href="https://github.com/GeoffreyWang1117/ref-check">GitHub</a> &middot;
+      <a href="https://pypi.org/project/ref-check/">PyPI</a> &middot;
+      <a href="https://github.com/GeoffreyWang1117/ref-check/blob/main/CONTRIBUTORS.md">Contributors</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
