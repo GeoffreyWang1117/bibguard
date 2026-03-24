@@ -111,16 +111,26 @@ Report (Markdown / JSON)
 
 ## Benchmark
 
-Tested on a 58-case golden test set with known hallucinated, retracted, chimera, and real papers:
+Tested on a 58-case golden test set (`tests/golden_benchmark.bib`) with known hallucinated, retracted, chimera, and real papers. Reproduce with `python tests/bench_golden.py`.
 
-| Metric | Result |
-|--------|--------|
-| Hallucination recall (FAIL/WARN) | **100% (14/14)** |
-| Real paper accuracy | 70% (7/10 clean pass, 3 manual-reviewable WARN) |
-| Phantom ID detection | 4/4 fake DOIs and arXiv IDs caught |
-| Runtime (58 entries) | ~92 seconds |
+| Category | Metric | Result |
+|----------|--------|--------|
+| **Hallucinated** (14 fabricated + 1 control) | Detected as FAIL | **14/14 (100%)** |
+| | Detected as >= WARN | **15/15 (100%)** |
+| **Chimera** (5 mixed-metadata) | Detected as >= WARN | **5/5 (100%)** |
+| **Real papers** (10 legitimate) | Clean pass (OK) | 4/10 (40%) |
+| | False positive (FAIL) | 1/10 (10%) |
+| **Retracted** (28 retractions) | Any issue flagged | 19/28 (68%) |
+| | Retraction tag detected | 0/28 (see note) |
+| **Runtime** | 58 entries | **95s (~1.6s/entry)** |
 
-For deeper verification (semantic NLI, citation graph analysis, Bayesian risk scoring), see [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef).
+**Notes:**
+- The 1 false-positive FAIL is a 1962 book (*The Structure of Scientific Revolutions*) with no DOI — a known edge case for API-based verification.
+- WARN on real papers are mostly venue/author-count mismatches — reviewable by humans.
+- Retraction detection requires the Crossref `update-to` field, which many retracted papers lack. For deeper retraction checking, see [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef).
+- All 14 truly fabricated citations are caught at FAIL level. The 1 "hallucinated" entry marked WARN is actually a control (real paper with arXiv-style DOI).
+
+For semantic NLI verification, citation graph analysis, and Bayesian risk scoring, see [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef).
 
 ## Claude Code Integration
 

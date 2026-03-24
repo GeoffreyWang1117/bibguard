@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ref-check"
-version = "1.0.0"
+version = "0.1.0"
 description = "Detect hallucinated and broken citations in academic papers"
 readme = "README.md"
 license = "MIT"
@@ -17,7 +17,7 @@ keywords = [
     "reference", "integrity", "latex", "scholarly",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",

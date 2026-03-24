@@ -15,7 +15,7 @@ CLI::
     ref-check paper.bib --tex main.tex --fix
 """
 
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 
 from ref_check.core import verify_bib, verify_entry, VerificationResult
 from ref_check.parsers.bibtex import parse_bib
