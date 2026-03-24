@@ -7,7 +7,7 @@ name = "ref-check"
 version = "0.1.0"
 description = "Detect hallucinated and broken citations in academic papers"
 readme = "README.md"
-license = "MIT"
+license = "Apache-2.0"
 requires-python = ">=3.9"
 authors = [
     { name = "Geoffrey Wang", email = "geoffreywang1117@gmail.com" },
@@ -19,7 +19,7 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",

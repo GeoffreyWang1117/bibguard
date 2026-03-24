@@ -132,23 +132,42 @@ Tested on a 58-case golden test set (`tests/golden_benchmark.bib`) with known ha
 
 For semantic NLI verification, citation graph analysis, and Bayesian risk scoring, see [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef).
 
-## Claude Code Integration
+## AI Coding Assistant Integration
 
-`ref-check` works as a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash command. Claude runs the verification, analyzes WARN/FAIL entries, and searches the web to find correct references.
+ref-check ships with skill/rule definitions for major AI coding assistants. The AI runs verification, analyzes FAIL entries, and searches the web to find correct references.
 
-### Install as slash command
+### Claude Code
 
 ```bash
 mkdir -p ~/.claude/commands
 curl -o ~/.claude/commands/ref-check.md \
   https://raw.githubusercontent.com/GeoffreyWang1117/ref-check/main/.claude/commands/ref-check.md
 ```
+Then use `/ref-check paper.bib` in Claude Code.
 
-### Use in Claude Code
+### OpenAI Codex CLI
 
+```bash
+mkdir -p ~/.codex/skills/ref-check
+curl -o ~/.codex/skills/ref-check/SKILL.md \
+  https://raw.githubusercontent.com/GeoffreyWang1117/ref-check/main/.codex/skills/ref-check/SKILL.md
 ```
-/ref-check paper.bib
-/ref-check paper.bib --tex main.tex --fix
+Codex will auto-discover the skill and use it when you ask to verify references.
+
+### Cursor
+
+```bash
+mkdir -p .cursor/rules
+curl -o .cursor/rules/ref-check.md \
+  https://raw.githubusercontent.com/GeoffreyWang1117/ref-check/main/.cursor/rules/ref-check.md
+```
+Cursor will use ref-check when editing `.bib` or `.tex` files.
+
+### Any other assistant
+
+ref-check is a standard CLI tool. Any AI assistant that can run shell commands can use it:
+```
+ref-check paper.bib --json --out report.json
 ```
 
 ## Optional dependencies
@@ -186,6 +205,13 @@ pytest
 - [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef) -- Full L0-L4 verification stack (semantic NLI, citation graph analysis, Bayesian risk scoring)
 - [Rebiber](https://github.com/yuchenlin/rebiber) -- Normalize BibTeX with DBLP/ACL Anthology
 
+## Contributors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md) for detailed attribution.
+
+- **Geoffrey Wang** — Architecture, core algorithms, phantom-ID detection, kill-shot logic, benchmark design
+- **Claude (Anthropic)** — Modular refactoring, output formatting, packaging, documentation
+
 ## License
 
-MIT
+Apache License 2.0. See [LICENSE](LICENSE) for details.
