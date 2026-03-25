@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.0] - 2026-03-25
+
+### Changed
+- `@misc`/`@online`/`@manual` entries downgrade to WARN (not FAIL) when not found
+- Year tolerance: +/-2 is WARN instead of FAIL (preprint vs published)
+- Confirmed matches (title+author OK) accept year off-by-1 as OK
+- Expanded venue abbreviation map (+25 entries: NLP, CV, DM, systems, scientometrics)
+- Expanded DBLP abbreviation map (+8 journal short forms)
+- Removed third-party references from README
+
+### Added
+- Large-scale benchmark (`tests/bench_large.py`) on 2000+ crawled entries
+- npm badge in README
+
+### Benchmark
+- 200-case large-scale: 100% hallucination recall, 0% false positive, 86% real paper OK
+- IntegriRef refs.bib (48 entries): OK 29->37, WARN 17->10, FAIL 2->1 vs v0.2.0
+
 ## [0.2.0] - 2026-03-24
 
 ### Changed

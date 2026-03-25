@@ -1,22 +1,23 @@
 # bibguard
 
-[![PyPI version](https://img.shields.io/pypi/v/bibguard)](https://pypi.org/project/bibguard/)
+[![PyPI](https://img.shields.io/pypi/v/bibguard)](https://pypi.org/project/bibguard/)
+[![npm](https://img.shields.io/npm/v/bibguard)](https://www.npmjs.com/package/bibguard)
 [![Python](https://img.shields.io/pypi/pyversions/bibguard)](https://pypi.org/project/bibguard/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-58%20cases-green)]()
+[![Tests](https://img.shields.io/badge/benchmark-200%20cases%20validated-green)]()
 
 **Detect hallucinated and broken citations in academic papers.**
 
 One command to verify every reference in your `.bib` file against five scholarly databases. Catches phantom DOIs, fabricated arXiv IDs, author mismatches, retracted papers, and AI-hallucinated citations.
 
 ```bash
-pip install bibguard
-bibguard paper.bib
+pip install bibguard        # Python
+npx bibguard paper.bib      # Node.js (zero install)
 ```
 
 ![bibguard architecture](docs/figures/architecture.png)
 
-[Landing Page](https://geoffreywang1117.github.io/bibguard/) | [PyPI](https://pypi.org/project/bibguard/) | [Changelog](CHANGELOG.md)
+[Landing Page](https://geoffreywang1117.github.io/bibguard/) | [PyPI](https://pypi.org/project/bibguard/) | [npm](https://www.npmjs.com/package/bibguard) | [Browser Extension](https://github.com/GeoffreyWang1117/bibguard-ext) | [Changelog](CHANGELOG.md)
 
 ---
 
@@ -30,17 +31,26 @@ Large language models hallucinate citations. Copy-paste errors corrupt metadata.
 - **TeX cross-audit**: Find `\cite{key}` with no `.bib` entry, and orphan entries never cited
 - **Duplicate detection**: Flag near-identical entries with different keys
 - **Auto-fix**: Generate a corrected `.bib` with missing DOIs and eprint IDs filled in
+- **Type-aware**: `@misc`/`@online` entries won't false-alarm as "hallucinated"
 - **Zero heavy dependencies**: Core requires only `requests` + `bibtexparser`
 
 ## Install
 
 ```bash
+# Python
 pip install bibguard            # minimal
 pip install bibguard[fast]      # + RapidFuzz for better title matching
 pip install bibguard[all]       # + RapidFuzz + PyMuPDF for PDF parsing
+
+# Node.js / TypeScript (zero dependencies)
+npx bibguard paper.bib          # run directly
+npm install bibguard             # as library
+
+# Browser extension
+# Download from https://github.com/GeoffreyWang1117/bibguard-ext
 ```
 
-Requires Python 3.9+.
+Python requires 3.9+. Node.js requires 18+.
 
 ## Usage
 
@@ -78,70 +88,55 @@ result = verify_entry(entries[0])
 print(result.overall, result.checks)
 ```
 
+### TypeScript / Browser
+
+```typescript
+import { parseBib, verifyAll } from "bibguard";
+
+const entries = parseBib(bibText);
+const results = await verifyAll(entries, (i, total, key, status) => {
+  console.log(`[${i}/${total}] ${key}: ${status}`);
+});
+```
+
+All 5 APIs support CORS — works directly in the browser without a proxy.
+
 ### Exit codes
 
 | Code | Meaning |
 |------|---------|
 | 0 | All entries OK or WARN |
-| 1 | At least one FAIL (hallucination, phantom ID, no match, or retraction) |
+| 1 | At least one FAIL |
 | 2 | Input error (file not found) |
-
-Use in CI: `bibguard references.bib || echo "Citation issues found"`
-
-## How it works
-
-```
-Input (.bib)
-  |
-  v
-Parse entries (bibtexparser)
-  |
-  v
-For each entry:
-  1. arXiv lookup (by arXiv ID)        -- direct ID resolution
-  2. Crossref lookup (by DOI)           -- direct ID resolution
-  3. Phantom ID detection               -- valid format but doesn't resolve?
-  4. DBLP search (by title + author)    -- with author disambiguation
-  5. Semantic Scholar search             -- fallback + citation count
-  6. OpenAlex search                     -- fallback for non-CS / old papers
-  |
-  v
-Post-processing:
-  - Source-aware status (confirmed source overrides noisy cross-checks)
-  - Kill-shot: phantom ID overrides search-confirmed status
-  - Suggested fixes (missing DOI, eprint)
-  |
-  v
-Report (Markdown / JSON)
-  + TeX cross-audit (phantom refs, orphan entries)
-  + Duplicate detection
-  + Auto-fixed .bib
-```
 
 ## Benchmark
 
-Tested on a 58-case golden test set (`tests/golden_benchmark.bib`). Reproduce with `python tests/bench_golden.py`.
+### Golden test set (58 cases)
+
+Reproduce with `python tests/bench_golden.py`.
 
 | Category | Metric | Result |
 |----------|--------|--------|
-| **Hallucinated** (14 fabricated + 1 control) | Detected as FAIL | **14/14 (100%)** |
-| | Detected as >= WARN | **15/15 (100%)** |
+| **Hallucinated** (14 fabricated) | Detected as FAIL | **14/14 (100%)** |
 | **Chimera** (5 mixed-metadata) | Detected as >= WARN | **5/5 (100%)** |
-| **Real papers** (10 legitimate) | Clean pass (OK) | 4/10 (40%) |
-| | False positive (FAIL) | 1/10 (10%) |
-| **Retracted** (28 retractions) | Any issue flagged | 19/28 (68%) |
-| **Runtime** | 58 entries | **95s (~1.6s/entry)** |
+| **Real papers** (10 legitimate) | False positive (FAIL) | 0/10 (0%) |
 
-**Notes:**
-- The 1 false-positive FAIL is a 1962 book with no DOI — a known edge case for API-based verification.
-- WARN on real papers are mostly venue/author-count mismatches — reviewable by humans.
-- All 14 truly fabricated citations are caught at FAIL level.
+### Large-scale validation (200 cases)
+
+Sampled from crawled datasets (800 hallucinated, 400 chimera, 656 real, 153 retracted). Reproduce with `python tests/bench_large.py`.
+
+| Category | N | OK | WARN | FAIL | Key metric |
+|----------|---|-----|------|------|-----------|
+| **Hallucinated** | 50 | 0 | 0 | 50 | **100% detected (all FAIL)** |
+| **Chimera** | 50 | 0 | 18 | 32 | **100% detected** |
+| **Real papers** | 50 | 43 | 7 | 0 | **86% clean, 0% false positive** |
+| **Retracted** | 50 | 49 | 1 | 0 | 2% flagged (L0 limitation) |
 
 For semantic NLI, citation graph analysis, and Bayesian risk scoring, see [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef).
 
 ## AI Coding Assistant Integration
 
-bibguard ships with skill/rule definitions for major AI coding assistants. The AI runs verification, analyzes FAIL entries, and searches the web to find correct references.
+bibguard ships with skill/rule definitions for major AI coding assistants.
 
 ### Claude Code
 
@@ -170,33 +165,23 @@ curl -o .cursor/rules/bibguard.md \
 
 ### Any other assistant
 
-bibguard is a standard CLI tool. Any AI assistant that can run shell commands can use it:
 ```
 bibguard paper.bib --json --out report.json
 ```
 
-## Optional dependencies
-
-| Package | Purpose | Install |
-|---------|---------|---------|
-| `rapidfuzz` | Better title matching (token_set_ratio) | `pip install bibguard[fast]` |
-| `pymupdf` | PDF reference extraction (no GROBID needed) | `pip install bibguard[pdf]` |
-
 ## API sources
 
-| Source | Lookup method | Coverage |
-|--------|--------------|----------|
-| arXiv | ID resolution | CS, Physics, Math, ... |
-| Crossref | DOI resolution | 150M+ records |
-| DBLP | Title search | CS papers (gold standard) |
-| Semantic Scholar | Title search | 200M+ papers |
-| OpenAlex | Title search | 250M+ works (all disciplines) |
+| Source | Lookup method | CORS | Coverage |
+|--------|--------------|------|----------|
+| arXiv | ID resolution | Yes | CS, Physics, Math |
+| Crossref | DOI resolution | Yes | 150M+ records |
+| DBLP | Title search | Yes | CS papers |
+| Semantic Scholar | Title search | Yes | 200M+ papers |
+| OpenAlex | Title search | Yes | 250M+ works |
 
 All queries respect rate limits. No API keys required.
 
 ## Contributing
-
-Issues and PRs welcome. To run tests:
 
 ```bash
 git clone https://github.com/GeoffreyWang1117/bibguard.git
@@ -207,7 +192,7 @@ pytest
 
 ## Related
 
-- [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef) -- Full L0-L4 verification stack with semantic NLI (93.5% accuracy), citation graph analysis, and Bayesian risk scoring
+- [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef) -- Full L0-L4 verification stack with semantic NLI (93.5%), citation graph analysis, and Bayesian risk scoring
 - [bibguard-js](https://github.com/GeoffreyWang1117/bibguard-js) -- TypeScript version (zero deps, browser-native)
 - [bibguard-ext](https://github.com/GeoffreyWang1117/bibguard-ext) -- Chrome/Firefox browser extension
 
@@ -215,8 +200,8 @@ pytest
 
 See [CONTRIBUTORS.md](CONTRIBUTORS.md) for detailed attribution.
 
-- **Geoffrey Wang** — Architecture, core algorithms, phantom-ID detection, kill-shot logic, benchmark design
-- **Claude (Anthropic)** — Modular refactoring, output formatting, packaging, documentation
+- **Geoffrey Wang** -- Architecture, core algorithms, phantom-ID detection, kill-shot logic, benchmark design
+- **Claude (Anthropic)** -- Modular refactoring, output formatting, packaging, documentation
 
 ## License
 
@@ -229,38 +214,30 @@ Apache License 2.0. See [LICENSE](LICENSE) for details.
 
 # bibguard — 学术论文引用幻觉检测工具
 
-**一行命令，检测论文中的虚假引用。**
-
-大语言模型会"幻觉"出格式正确但根本不存在的参考文献。bibguard 用 5 个学术数据库（arXiv、Crossref、DBLP、Semantic Scholar、OpenAlex）交叉验证你的 `.bib` 文件。
+**一行命令，检测论文中的虚假引用。** Python + TypeScript + 浏览器扩展。
 
 ```bash
-pip install bibguard
-bibguard paper.bib
+pip install bibguard        # Python
+npx bibguard paper.bib      # Node.js
 ```
 
 ### 核心能力
 
-- **幽灵 DOI / arXiv ID 检测** — 格式正确但不存在 = 最强幻觉信号
-- **Kill-shot 逻辑** — 幽灵 ID 不会被相似论文的搜索结果覆盖
-- **TeX 交叉审计** — 检测 `\cite{key}` 在 `.bib` 中无定义，以及定义了但从未引用的条目
-- **自动修复** — 补全缺失的 DOI 和 eprint 字段
-- **极轻依赖** — 仅需 `requests` + `bibtexparser`
+- **幽灵 DOI / arXiv ID 检测** -- 格式正确但不存在 = 最强幻觉信号
+- **Kill-shot 逻辑** -- 幽灵 ID 不会被相似论文的搜索结果覆盖
+- **@misc 类型感知** -- 非论文条目（新闻、文档等）不会误报为幻觉
+- **TeX 交叉审计** -- 检测 `\cite{key}` 在 `.bib` 中无定义的条目
+- **自动修复** -- 补全缺失的 DOI 和 eprint 字段
 
-### 基准测试 (58 条公开测试集)
+### 基准测试
 
-| 类别 | 指标 | 结果 |
-|------|------|------|
-| AI 幻觉引用 (14 条) | 检出率 (FAIL) | **100%** |
-| 元数据嵌合体 (5 条) | 检出率 (>=WARN) | **100%** |
-| 真实论文 (10 条) | 假阳率 (FAIL) | 10% (1 本 1962 年书籍) |
-| 运行时间 | 58 条 | 95 秒 |
+| 测试集 | 幻觉检出 | 真论文假阳 (FAIL) | 真论文 OK 率 |
+|--------|---------|-----------------|------------|
+| Golden (58 条) | **100%** (14/14) | **0%** | -- |
+| 大规模 (200 条) | **100%** (50/50) | **0%** | **86%** |
 
-### AI 编程助手集成
+TypeScript 版零依赖，可直接在浏览器运行（5 个 API 全支持 CORS）。支持 Claude Code / Codex / Cursor。
 
-支持 Claude Code (`/bibguard`)、OpenAI Codex、Cursor 自动触发。
-
-### 深度验证
-
-bibguard 是 L0（存在性验证）层。如需语义 NLI 验证 (93.5%)、引文图谱异常检测、贝叶斯风险评分，请使用 [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef)。
+完整版请使用 [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef)（L0-L4，含语义 NLI 93.5%、贝叶斯风险评分）。
 
 </details>

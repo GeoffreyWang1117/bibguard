@@ -156,7 +156,7 @@
     </div>
     <div class="terminal-body">
 <pre>
-  bibguard v0.2.0
+  bibguard v0.3.0
   paper.bib — 42 entries
 
   <span class="m">[ 1/42]</span> vaswani2017attention                 <span class="g">&#x2705;</span> crossref, dblp
@@ -243,18 +243,18 @@
   <!-- Benchmark -->
   <section>
     <h2>Benchmark</h2>
-    <p style="color:var(--text-muted); margin-bottom: 20px;">58-case golden test set. <a href="https://github.com/GeoffreyWang1117/bibguard/blob/main/tests/bench_golden.py">Reproduce it yourself.</a></p>
+    <p style="color:var(--text-muted); margin-bottom: 12px;">v0.3.0 &mdash; validated on 200 entries sampled from crawled datasets.
+      <a href="https://github.com/GeoffreyWang1117/bibguard/blob/main/tests/bench_large.py">Reproduce it yourself.</a></p>
     <table>
-      <thead><tr><th>Category</th><th>Metric</th><th>Result</th></tr></thead>
+      <thead><tr><th>Category</th><th>N</th><th>Key Metric</th></tr></thead>
       <tbody>
-        <tr><td>Hallucinated (14 fabricated)</td><td>Detected as FAIL</td><td><strong style="color:var(--green)">14/14 (100%)</strong></td></tr>
-        <tr><td>Chimera (5 mixed-metadata)</td><td>Detected as &ge; WARN</td><td><strong style="color:var(--green)">5/5 (100%)</strong></td></tr>
-        <tr><td>Real papers (10)</td><td>False positive (FAIL)</td><td>1/10 (10%)</td></tr>
-        <tr><td>Retracted (28)</td><td>Any issue flagged</td><td>19/28 (68%)</td></tr>
-        <tr><td>Runtime</td><td>58 entries</td><td>95s (~1.6s/entry)</td></tr>
-        <tr><td>Python vs TypeScript</td><td>Agreement on 48 real refs</td><td><strong>90% (43/48)</strong></td></tr>
+        <tr><td>Hallucinated</td><td>50</td><td><strong style="color:var(--green)">100% detected (all FAIL)</strong></td></tr>
+        <tr><td>Chimera</td><td>50</td><td><strong style="color:var(--green)">100% detected</strong></td></tr>
+        <tr><td>Real papers</td><td>50</td><td><strong style="color:var(--green)">0% false positive</strong>, 86% clean OK</td></tr>
+        <tr><td>Retracted</td><td>50</td><td>2% flagged (L0 limitation)</td></tr>
       </tbody>
     </table>
+    <p style="color:var(--text-muted); margin-top: 12px; font-size: 0.85rem;">Also validated on 58-case golden test set: 14/14 hallucinations caught, 5/5 chimeras detected.</p>
   </section>
 
   <!-- Sources -->
