@@ -12,3 +12,4 @@ build/
 htmlcov/
 .mypy_cache/
 promo/
+benchmarks_data/
