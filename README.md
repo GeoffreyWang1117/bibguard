@@ -208,7 +208,8 @@ pytest
 ## Related
 
 - [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef) -- Full L0-L4 verification stack with semantic NLI (93.5% accuracy), citation graph analysis, and Bayesian risk scoring
-- [Rebiber](https://github.com/yuchenlin/rebiber) -- Normalize BibTeX with DBLP/ACL Anthology
+- [bibguard-js](https://github.com/GeoffreyWang1117/bibguard-js) -- TypeScript version (zero deps, browser-native)
+- [bibguard-ext](https://github.com/GeoffreyWang1117/bibguard-ext) -- Chrome/Firefox browser extension
 
 ## Contributors
 
