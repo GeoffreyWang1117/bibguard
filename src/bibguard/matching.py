@@ -144,10 +144,13 @@ def match_year(bib_year: str, api_year: Optional[str]) -> tuple[str, str]:
         by, ay = int(bib_year), int(api_year)
     except (ValueError, TypeError):
         return "WARN", f"unparseable years: bib={bib_year} api={api_year}"
-    if by == ay:
+    diff = abs(by - ay)
+    if diff == 0:
         return "OK", f"year exact match ({by})"
-    elif abs(by - ay) <= 1:
+    elif diff <= 1:
         return "WARN", f"year off by 1: bib={by} api={ay}"
+    elif diff <= 2:
+        return "WARN", f"year off by 2: bib={by} api={ay} (preprint vs published?)"
     else:
         return "FAIL", f"year mismatch: bib={by} api={ay}"
 
@@ -157,20 +160,49 @@ def match_year(bib_year: str, api_year: Optional[str]) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 
 _VENUE_ABBREVS = {
+    # ML/AI conferences
     "icml": "international conference on machine learning",
     "neurips": "advances in neural information processing systems",
     "nips": "advances in neural information processing systems",
     "iclr": "international conference on learning representations",
     "aaai": "association for the advancement of artificial intelligence",
     "ijcai": "international joint conference on artificial intelligence",
+    "jmlr": "journal of machine learning research",
+    "jair": "journal of artificial intelligence research",
+    "kbs": "knowledge-based systems",
+    # Vision
     "cvpr": "computer vision and pattern recognition",
+    "iccv": "international conference on computer vision",
+    "eccv": "european conference on computer vision",
+    # NLP
     "acl": "association for computational linguistics",
     "emnlp": "empirical methods in natural language processing",
-    "jmlr": "journal of machine learning research",
-    "pnas": "proceedings of the national academy of sciences",
-    "jair": "journal of artificial intelligence research",
+    "naacl": "north american chapter of the association for computational linguistics",
+    "coling": "international conference on computational linguistics",
+    "eacl": "european chapter of the association for computational linguistics",
+    # Data mining / IR
+    "kdd": "knowledge discovery and data mining",
+    "www": "world wide web",
+    "sigir": "special interest group on information retrieval",
+    "wsdm": "web search and data mining",
+    "cikm": "conference on information and knowledge management",
+    # Systems
+    "osdi": "operating systems design and implementation",
+    "sosp": "symposium on operating systems principles",
+    "nsdi": "networked systems design and implementation",
+    # Robotics
     "iros": "intelligent robots and systems",
-    "kbs": "knowledge-based systems",
+    "icra": "international conference on robotics and automation",
+    # Science
+    "pnas": "proceedings of the national academy of sciences",
+    "nature": "nature",
+    "science": "science",
+    # Scientometrics / Library science
+    "jasist": "journal of the association for information science and technology",
+    "scientometrics": "scientometrics",
+    "qss": "quantitative science studies",
+    "jcdl": "joint conference on digital libraries",
+    "joi": "journal of informetrics",
 }
 
 _DBLP_VENUE_MAP = {
@@ -184,6 +216,14 @@ _DBLP_VENUE_MAP = {
     "j. artif. intell. res.": "journal of artificial intelligence research",
     "mach. learn.": "machine learning",
     "corr": "arxiv",
+    "sci. rep.": "scientific reports",
+    "inf. process. manag.": "information processing and management",
+    "j. assoc. inf. sci. technol.": "journal of the association for information science and technology",
+    "j. informetr.": "journal of informetrics",
+    "int. j. inf. manag.": "international journal of information management",
+    "j. am. soc. inf. sci. technol.": "journal of the american society for information science and technology",
+    "account. res.": "accountability in research",
+    "learn. publ.": "learned publishing",
 }
 
 

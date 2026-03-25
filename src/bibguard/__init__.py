@@ -15,7 +15,7 @@ CLI::
     bibguard paper.bib --tex main.tex --fix
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from bibguard.core import verify_bib, verify_entry, VerificationResult
 from bibguard.parsers.bibtex import parse_bib

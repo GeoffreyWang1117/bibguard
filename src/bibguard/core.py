@@ -93,9 +93,14 @@ def _check_source(result: VerificationResult, entry: dict, data: dict,
         result.add_check("venue", s, d, source)
 
 
+# Entry types that are not expected to be found in scholarly APIs
+_NON_ARTICLE_TYPES = {"misc", "online", "manual", "techreport", "booklet", "unpublished"}
+
+
 def verify_entry(entry: dict, verbose: bool = False) -> VerificationResult:
     """Verify a single bib entry against all available sources."""
     result = VerificationResult(entry["key"], entry["title"])
+    is_non_article = entry.get("type", "").lower() in _NON_ARTICLE_TYPES
 
     # -- Source 1: arXiv (by ID) --
     if entry.get("arxiv_id"):
@@ -190,10 +195,16 @@ def verify_entry(entry: dict, verbose: bool = False) -> VerificationResult:
 
     # -- No source hit --
     if not result.sources_hit:
-        result.add_check("verification", "FAIL",
-                         f"NO API MATCH -- paper may be hallucinated or title differs significantly "
-                         f"(tried: {', '.join(result.sources_tried)})")
-        result.overall = "FAIL"
+        if is_non_article:
+            result.add_check("verification", "WARN",
+                             f"No API match for @{entry.get('type', 'misc')} entry "
+                             f"-- non-article types have limited API coverage")
+            result.overall = "WARN"
+        else:
+            result.add_check("verification", "FAIL",
+                             f"NO API MATCH -- paper may be hallucinated or title differs significantly "
+                             f"(tried: {', '.join(result.sources_tried)})")
+            result.overall = "FAIL"
 
     # -- Post-processing: source-aware overall status --
     source_statuses = {}
@@ -204,9 +215,14 @@ def verify_entry(entry: dict, verbose: bool = False) -> VerificationResult:
         if title_ok and author_ok:
             source_statuses[src] = "confirmed"
             for c in result.checks:
-                if c["source"] == src and c["field"] == "year" and c["status"] == "FAIL":
-                    c["status"] = "WARN"
-                    c["detail"] += " (downgraded: title+author match)"
+                if c["source"] == src and c["field"] == "year":
+                    if c["status"] == "FAIL":
+                        c["status"] = "WARN"
+                        c["detail"] += " (downgraded: title+author confirmed)"
+                    # For confirmed matches, year off by ≤2 is OK (preprint vs published)
+                    if c["status"] == "WARN" and "off by 1" in c["detail"]:
+                        c["status"] = "OK"
+                        c["detail"] += " (accepted: confirmed match)"
 
     if any(v == "confirmed" for v in source_statuses.values()):
         confirmed_sources = {s for s, v in source_statuses.items() if v == "confirmed"}
