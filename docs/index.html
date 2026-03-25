@@ -220,7 +220,7 @@
   doi = {10.48550/arXiv.1706.03762},
 }"></textarea>
       <div class="demo-actions">
-        <button id="demoBtn" onclick="runDemo()">Verify</button>
+        <button id="demoBtn">Verify</button>
         <span class="demo-status" id="demoStatus"></span>
       </div>
       <div class="demo-results" id="demoResults"></div>
@@ -307,46 +307,97 @@
   </div>
 </footer>
 
-<!-- Live Demo Engine (inline bibguard core for browser) -->
+<!-- Live Demo Engine — bibguard v0.3.0 inline core -->
 <script>
+// ── utils ──
 function tokenize(s){return new Set((s.toLowerCase().match(/[a-z0-9]+/g)||[]))}
 function tokenSim(a,b){const ta=tokenize(a),tb=tokenize(b);if(!ta.size||!tb.size)return 0;let i=0;for(const t of ta)if(tb.has(t))i++;return i/new Set([...ta,...tb]).size}
 function firstSurname(s){const p=s.split(/\s+and\s+/i)[0]?.trim()||"";if(!p)return"";if(p.includes(","))return p.split(",")[0].trim().split(/\s+/).pop().toLowerCase();return p.split(/\s+/).pop().toLowerCase()}
 function stripLatex(s){if(!s)return"";return s.replace(/\\text\w+\{([^}]*)\}/g,"$1").replace(/\\[`'^~"=.vc]\{(\w)\}/g,"$1").replace(/\\[`'^~"=.vc](\w)/g,"$1").replace(/\\(\W)/g,"$1").replace(/\\[a-zA-Z]+\s*/g,"").replace(/[{}$]/g,"").replace(/\s+/g," ").trim()}
-function parseBib(t){const e=[];const re=/@(\w+)\s*\{([^,]*),/g;let m;while((m=re.exec(t))!==null){const tp=m[1].toLowerCase();if(["string","preamble","comment"].includes(tp))continue;const k=m[2].trim();let d=1,i=m.index+m[0].length;while(i<t.length&&d>0){if(t[i]==="{")d++;else if(t[i]==="}")d--;i++}const b=t.slice(m.index+m[0].length,i-1);const f={};const fr=/(\w+)\s*=\s*(?:\{((?:[^{}]|\{[^{}]*\})*)\}|"([^"]*)"|\s*(\d+)\s*)/g;let fm;while((fm=fr.exec(b))!==null)f[fm[1].toLowerCase()]=(fm[2]??fm[3]??fm[4]??"").trim();let ax=null;for(const ff of["journal","eprint","url","note"]){const v=f[ff]||"";const am=v.match(/arXiv[:\s]*(\d{4}\.\d{4,5}(?:v\d+)?)/i);if(am){ax=am[1];break}}if(!ax&&/^\d{4}\.\d{4,5}/.test(f.eprint||""))ax=(f.eprint||"").trim();e.push({key:k,title:stripLatex(f.title||""),author:f.author||"",year:f.year||"",doi:f.doi||"",arxivId:ax,venue:f.booktitle||f.journal||""})}return e}
-const RL={};async function rl(s,ms){const n=Date.now(),l=RL[s]||0,w=ms-(n-l);if(w>0)await new Promise(r=>setTimeout(r,w));RL[s]=Date.now()}
-async function fj(u,s,ms=1000){await rl(s,ms);try{const r=await fetch(u);if(!r.ok)return null;return await r.json()}catch{return null}}
-async function ft(u,s,ms=3000){await rl(s,ms);try{const r=await fetch(u);if(!r.ok)return null;return await r.text()}catch{return null}}
-async function qArxiv(id){const t=await ft(`https://export.arxiv.org/api/query?id_list=${encodeURIComponent(id)}`,"arxiv");if(!t)return null;const ts=[...t.matchAll(/<title[^>]*>([\s\S]*?)<\/title>/g)].map(m=>m[1].replace(/\s+/g," ").trim());if(ts.length<2||ts[1].toLowerCase().startsWith("error"))return null;return{source:"arxiv",title:ts[1],authors:[...t.matchAll(/<name>(.*?)<\/name>/g)].map(m=>m[1]),year:(t.match(/<published>(.*?)<\/published>/)||[])[1]?.slice(0,4)||null}}
-async function qCR(doi){const d=await fj(`https://api.crossref.org/works/${encodeURIComponent(doi)}`,"crossref");if(!d?.message)return null;const msg=d.message;let y=null;for(const f of["published-print","published-online","created"]){const p=msg[f]?.["date-parts"]?.[0];if(p?.[0]){y=String(p[0]);break}}return{source:"crossref",title:msg.title?.[0]||"",authors:(msg.author||[]).map(a=>`${a.given||""} ${a.family||""}`.trim()).filter(Boolean),year:y,venue:msg["container-title"]?.[0]||"",isRetracted:(msg["update-to"]||[]).some(u=>u.type==="retracted-article")}}
-async function qDB(title,author){const p=new URLSearchParams({q:title,format:"json",h:"5"});const d=await fj(`https://dblp.org/search/publ/api?${p}`,"dblp");const h=d?.result?.hits?.hit;if(!h?.length)return null;const bs=author?firstSurname(author):"";let best=null,bS=0,bA=[];for(const hi of h){const info=hi.info||{};let sc=tokenSim(title,(info.title||"").replace(/\.$/,""));if(sc<.6)continue;let ad=info.authors?.author||[];if(!Array.isArray(ad))ad=[ad];const au=ad.map(a=>(typeof a==="string"?a:a.text||"").replace(/\s+\d{4}$/,"").trim());if(bs&&au.length&&au[0].split(/\s+/).pop()?.toLowerCase()===bs)sc+=.3;if(sc>bS){bS=sc;best=info;bA=au}}if(!best||bS<.6)return null;let v=best.venue||"";if(Array.isArray(v))v=v[0]||"";return{source:"dblp",title:(best.title||"").replace(/\.$/,""),authors:bA,year:best.year||null,venue:v}}
-async function qS2(title,author){const p=new URLSearchParams({query:title,limit:"5",fields:"title,authors,year,venue,externalIds"});const d=await fj(`https://api.semanticscholar.org/graph/v1/paper/search?${p}`,"s2");if(!d?.data?.length)return null;const bs=author?firstSurname(author):"";let best=null,bS=0;for(const pp of d.data){let sc=tokenSim(title,pp.title||"");if(sc<.6)continue;const pa=(pp.authors||[]).map(a=>a.name||"");if(bs&&pa.length&&pa[0].split(/\s+/).pop()?.toLowerCase()===bs)sc+=.3;if(sc>bS){bS=sc;best=pp}}if(!best||bS<.6)return null;return{source:"s2",title:best.title||"",authors:(best.authors||[]).map(a=>a.name||""),year:best.year?String(best.year):null,venue:best.venue||""}}
-async function qOA(title,author){const p=new URLSearchParams({search:title,per_page:"3",mailto:"bibguard@example.com"});const d=await fj(`https://api.openalex.org/works?${p}`,"openalex",500);if(!d?.results?.length)return null;const bs=author?firstSurname(author):"";let best=null,bS=0,bA=[];for(const w of d.results){let sc=tokenSim(title,w.title||"");if(sc<.6)continue;const au=(w.authorships||[]).map(a=>a.author?.display_name||"").filter(Boolean);if(bs&&au.length&&au[0].split(/\s+/).pop()?.toLowerCase()===bs)sc+=.3;if(sc>bS){bS=sc;best=w;bA=au}}if(!best||bS<.6)return null;let doi=best.doi||"";if(doi.startsWith("https://doi.org/"))doi=doi.slice(16);return{source:"openalex",title:best.title||"",authors:bA,year:best.publication_year?String(best.publication_year):null,venue:best.primary_location?.source?.display_name||"",isRetracted:best.is_retracted||false}}
-function mf(bib,api,f){if(f==="title"){const s=tokenSim(bib,api);if(s>=.85)return{s:"OK",d:`match (${s.toFixed(2)})`};if(s>=.7)return{s:"WARN",d:`partial (${s.toFixed(2)})`};return{s:"FAIL",d:`mismatch (${s.toFixed(2)})`}}if(f==="year"){if(!api)return{s:"WARN",d:"no year"};const by=parseInt(bib),ay=parseInt(api);if(isNaN(by)||isNaN(ay))return{s:"WARN",d:"unparseable"};if(by===ay)return{s:"OK",d:`${by}`};if(Math.abs(by-ay)<=1)return{s:"WARN",d:"off by 1"};return{s:"FAIL",d:`${by} vs ${ay}`}}if(f==="authors"){if(!api?.length)return{s:"WARN",d:"no authors"};const bs=firstSurname(bib).normalize("NFD").replace(/[\u0300-\u036f]/g,"");const as=(api[0].split(/\s+/).pop()||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");return bs===as?{s:"OK",d:`'${bs}'`}:{s:"FAIL",d:`'${bs}' vs '${as}'`}}return{s:"OK",d:""}}
-async function verify(entry,onS){const r={key:entry.key,title:entry.title,overall:"OK",sourcesHit:[],checks:[]};const ac=(f,s,d,src)=>{r.checks.push({field:f,status:s,detail:d,source:src});if(s==="FAIL"&&r.overall!=="FAIL")r.overall="FAIL";else if(s==="WARN"&&r.overall==="OK")r.overall="WARN"};const cs=(data)=>{r.sourcesHit.push(data.source);for(const[f,b,a]of[["title",entry.title,data.title],["authors",entry.author,data.authors],["year",entry.year,data.year]]){const m=mf(b,a,f);ac(f,m.s,m.d,data.source)}};
-if(entry.arxivId){onS?.("arXiv...");const d=await qArxiv(entry.arxivId);if(d)cs(d)}
-if(entry.doi){onS?.("Crossref...");const d=await qCR(entry.doi);if(d){cs(d);if(d.isRetracted)ac("retraction","FAIL","RETRACTED","crossref")}}
-let ph=false;if(entry.doi&&/^10\.\d{4,}\//.test(entry.doi)&&!r.sourcesHit.includes("crossref")){ph=true;ac("phantom_doi","FAIL",`DOI '${entry.doi}' doesn't resolve`,"crossref")}
-if(entry.arxivId&&/^\d{4}\.\d{4,5}/.test(entry.arxivId)&&!r.sourcesHit.includes("arxiv")){ph=true;ac("phantom_arxiv","FAIL",`arXiv '${entry.arxivId}' doesn't exist`,"arxiv")}
-onS?.("DBLP...");let d=await qDB(entry.title,entry.author);if(d)cs(d);
-onS?.("S2...");d=await qS2(entry.title,entry.author);if(d)cs(d);
-if(!r.sourcesHit.length){onS?.("OpenAlex...");d=await qOA(entry.title,entry.author);if(d){cs(d);if(d.isRetracted)ac("retraction","FAIL","RETRACTED","openalex")}}
-if(!r.sourcesHit.length){ac("verification","FAIL","NO API MATCH","");r.overall="FAIL"}
-const cf=new Set();for(const src of r.sourcesHit){const sc=r.checks.filter(c=>c.source===src);if(sc.some(c=>c.field==="title"&&c.status==="OK")&&sc.some(c=>c.field==="authors"&&(c.status==="OK"||c.status==="WARN")))cf.add(src)}
-if(cf.size){r.overall="OK";for(const c of r.checks){if(!cf.has(c.source))continue;if(c.status==="FAIL"){r.overall="FAIL";break}if(c.status==="WARN"&&r.overall==="OK")r.overall="WARN"}}
+var NON_ARTICLE=["misc","online","manual","techreport","booklet","unpublished"];
+
+// ── parser (returns type field) ──
+function parseBib(t){var e=[];var re=/@(\w+)\s*\{([^,]*),/g;var m;while((m=re.exec(t))!==null){var tp=m[1].toLowerCase();if(["string","preamble","comment"].indexOf(tp)>=0)continue;var k=m[2].trim();var d=1,i=m.index+m[0].length;while(i<t.length&&d>0){if(t[i]==="{")d++;else if(t[i]==="}")d--;i++}var b=t.slice(m.index+m[0].length,i-1);var f={};var fr=/(\w+)\s*=\s*(?:\{((?:[^{}]|\{[^{}]*\})*)\}|"([^"]*)"|\s*(\d+)\s*)/g;var fm;while((fm=fr.exec(b))!==null)f[fm[1].toLowerCase()]=(fm[2]||fm[3]||fm[4]||"").trim();var ax=null;var flds=["journal","eprint","url","note"];for(var fi=0;fi<flds.length;fi++){var v=f[flds[fi]]||"";var am=v.match(/arXiv[:\s]*(\d{4}\.\d{4,5}(?:v\d+)?)/i);if(am){ax=am[1];break}}if(!ax&&/^\d{4}\.\d{4,5}/.test(f.eprint||""))ax=(f.eprint||"").trim();e.push({key:k,type:tp,title:stripLatex(f.title||""),author:f.author||"",year:f.year||"",doi:f.doi||"",arxivId:ax,venue:f.booktitle||f.journal||""})}return e}
+
+// ── rate limiter + fetch ──
+var RL={};function rl(s,ms){return new Promise(function(res){var n=Date.now(),l=RL[s]||0,w=ms-(n-l);if(w>0)setTimeout(function(){RL[s]=Date.now();res()},w);else{RL[s]=Date.now();res()}})}
+async function fj(u,s,ms){await rl(s,ms||1000);try{var r=await fetch(u);if(!r.ok)return null;return await r.json()}catch(e){return null}}
+async function ft(u,s,ms){await rl(s,ms||3000);try{var r=await fetch(u);if(!r.ok)return null;return await r.text()}catch(e){return null}}
+
+// ── API sources ──
+async function qArxiv(id){var t=await ft("https://export.arxiv.org/api/query?id_list="+encodeURIComponent(id),"arxiv");if(!t)return null;var ts=[];var re2=/<title[^>]*>([\s\S]*?)<\/title>/g;var rm;while((rm=re2.exec(t))!==null)ts.push(rm[1].replace(/\s+/g," ").trim());if(ts.length<2||ts[1].toLowerCase().startsWith("error"))return null;var au=[];re2=/<name>(.*?)<\/name>/g;while((rm=re2.exec(t))!==null)au.push(rm[1]);var pm=t.match(/<published>(.*?)<\/published>/);return{source:"arxiv",title:ts[1],authors:au,year:pm?pm[1].slice(0,4):null}}
+async function qCR(doi){var d=await fj("https://api.crossref.org/works/"+encodeURIComponent(doi),"crossref");if(!d||!d.message)return null;var msg=d.message;var y=null;var fs=["published-print","published-online","created"];for(var i=0;i<fs.length;i++){var pp=msg[fs[i]];if(pp&&pp["date-parts"]&&pp["date-parts"][0]&&pp["date-parts"][0][0]){y=String(pp["date-parts"][0][0]);break}}return{source:"crossref",title:(msg.title||[""])[0],authors:(msg.author||[]).map(function(a){return((a.given||"")+" "+(a.family||"")).trim()}).filter(Boolean),year:y,venue:(msg["container-title"]||[""])[0],isRetracted:(msg["update-to"]||[]).some(function(u){return u.type==="retracted-article"})}}
+async function qDB(title,author){var p=new URLSearchParams({q:title,format:"json",h:"5"});var d=await fj("https://dblp.org/search/publ/api?"+p,"dblp");if(!d||!d.result||!d.result.hits)return null;var h=d.result.hits.hit;if(!h||!h.length)return null;var bs=author?firstSurname(author):"";var best=null,bS=0,bA=[];for(var i=0;i<h.length;i++){var info=h[i].info||{};var sc=tokenSim(title,(info.title||"").replace(/\.$/,""));if(sc<.6)continue;var ad=info.authors?info.authors.author:[];if(!Array.isArray(ad))ad=ad?[ad]:[];var au=ad.map(function(a){return(typeof a==="string"?a:a.text||"").replace(/\s+\d{4}$/,"").trim()});if(bs&&au.length&&(au[0].split(/\s+/).pop()||"").toLowerCase()===bs)sc+=.3;if(sc>bS){bS=sc;best=info;bA=au}}if(!best||bS<.6)return null;var v=best.venue||"";if(Array.isArray(v))v=v[0]||"";return{source:"dblp",title:(best.title||"").replace(/\.$/,""),authors:bA,year:best.year||null,venue:v}}
+async function qS2(title,author){var p=new URLSearchParams({query:title,limit:"5",fields:"title,authors,year,venue,externalIds"});var d=await fj("https://api.semanticscholar.org/graph/v1/paper/search?"+p,"s2");if(!d||!d.data||!d.data.length)return null;var bs=author?firstSurname(author):"";var best=null,bS=0;for(var i=0;i<d.data.length;i++){var pp=d.data[i];var sc=tokenSim(title,pp.title||"");if(sc<.6)continue;var pa=(pp.authors||[]).map(function(a){return a.name||""});if(bs&&pa.length&&(pa[0].split(/\s+/).pop()||"").toLowerCase()===bs)sc+=.3;if(sc>bS){bS=sc;best=pp}}if(!best||bS<.6)return null;return{source:"s2",title:best.title||"",authors:(best.authors||[]).map(function(a){return a.name||""}),year:best.year?String(best.year):null,venue:best.venue||""}}
+async function qOA(title,author){var p=new URLSearchParams({search:title,per_page:"3",mailto:"bibguard@example.com"});var d=await fj("https://api.openalex.org/works?"+p,"openalex",500);if(!d||!d.results||!d.results.length)return null;var bs=author?firstSurname(author):"";var best=null,bS=0,bA=[];for(var i=0;i<d.results.length;i++){var w=d.results[i];var sc=tokenSim(title,w.title||"");if(sc<.6)continue;var au=(w.authorships||[]).map(function(a){return a.author?a.author.display_name||"":""}).filter(Boolean);if(bs&&au.length&&(au[0].split(/\s+/).pop()||"").toLowerCase()===bs)sc+=.3;if(sc>bS){bS=sc;best=w;bA=au}}if(!best||bS<.6)return null;var doi=best.doi||"";if(doi.indexOf("https://doi.org/")===0)doi=doi.slice(16);return{source:"openalex",title:best.title||"",authors:bA,year:best.publication_year?String(best.publication_year):null,venue:(best.primary_location&&best.primary_location.source)?best.primary_location.source.display_name||"":"",isRetracted:best.is_retracted||false}}
+
+// ── field matching (v0.3.0: year ±2 = WARN) ──
+function mf(bib,api,f){
+if(f==="title"){var s=tokenSim(bib,api);if(s>=.85)return{s:"OK",d:"match ("+s.toFixed(2)+")"};if(s>=.7)return{s:"WARN",d:"partial ("+s.toFixed(2)+")"};return{s:"FAIL",d:"mismatch ("+s.toFixed(2)+")"}}
+if(f==="year"){if(!api)return{s:"WARN",d:"no year"};var by=parseInt(bib),ay=parseInt(api);if(isNaN(by)||isNaN(ay))return{s:"WARN",d:"unparseable"};var diff=Math.abs(by-ay);if(diff===0)return{s:"OK",d:""+by};if(diff<=1)return{s:"WARN",d:"off by 1"};if(diff<=2)return{s:"WARN",d:"off by 2 (preprint?)"};return{s:"FAIL",d:by+" vs "+ay}}
+if(f==="authors"){if(!api||!api.length)return{s:"WARN",d:"no authors"};var bs=firstSurname(bib).normalize("NFD").replace(/[\u0300-\u036f]/g,"");var as2=(api[0].split(/\s+/).pop()||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");return bs===as2?{s:"OK",d:"'"+bs+"'"}:{s:"FAIL",d:"'"+bs+"' vs '"+as2+"'"}}
+return{s:"OK",d:""}}
+
+// ── verify engine (v0.3.0: type awareness + confirmed year downgrade) ──
+async function verify(entry,onS){
+var r={key:entry.key,title:entry.title,overall:"OK",sourcesHit:[],checks:[]};
+var isNonArticle=NON_ARTICLE.indexOf(entry.type||"")>=0;
+function ac(f,s,d,src){r.checks.push({field:f,status:s,detail:d,source:src});if(s==="FAIL"&&r.overall!=="FAIL")r.overall="FAIL";else if(s==="WARN"&&r.overall==="OK")r.overall="WARN"}
+function cs(data){r.sourcesHit.push(data.source);var pairs=[["title",entry.title,data.title],["authors",entry.author,data.authors],["year",entry.year,data.year]];for(var i=0;i<pairs.length;i++){var m=mf(pairs[i][1],pairs[i][2],pairs[i][0]);ac(pairs[i][0],m.s,m.d,data.source)}}
+
+if(entry.arxivId){onS&&onS("arXiv...");var d=await qArxiv(entry.arxivId);if(d)cs(d)}
+if(entry.doi){onS&&onS("Crossref...");var d=await qCR(entry.doi);if(d){cs(d);if(d.isRetracted)ac("retraction","FAIL","RETRACTED","crossref")}}
+var ph=false;
+if(entry.doi&&/^10\.\d{4,}\//.test(entry.doi)&&r.sourcesHit.indexOf("crossref")<0){ph=true;ac("phantom_doi","FAIL","DOI '"+entry.doi+"' doesn't resolve","crossref")}
+if(entry.arxivId&&/^\d{4}\.\d{4,5}/.test(entry.arxivId)&&r.sourcesHit.indexOf("arxiv")<0){ph=true;ac("phantom_arxiv","FAIL","arXiv '"+entry.arxivId+"' doesn't exist","arxiv")}
+onS&&onS("DBLP...");d=await qDB(entry.title,entry.author);if(d)cs(d);
+onS&&onS("S2...");d=await qS2(entry.title,entry.author);if(d)cs(d);
+if(!r.sourcesHit.length){onS&&onS("OpenAlex...");d=await qOA(entry.title,entry.author);if(d){cs(d);if(d.isRetracted)ac("retraction","FAIL","RETRACTED","openalex")}}
+
+// No match — type-aware (v0.3.0)
+if(!r.sourcesHit.length){
+  if(isNonArticle){ac("verification","WARN","No API match for @"+entry.type+" — non-article types have limited coverage","");r.overall="WARN"}
+  else{ac("verification","FAIL","NO API MATCH","");r.overall="FAIL"}}
+
+// Confirmed source + year downgrade (v0.3.0)
+var cf=[];
+for(var si=0;si<r.sourcesHit.length;si++){var src=r.sourcesHit[si];var sc=r.checks.filter(function(c){return c.source===src});var tOk=sc.some(function(c){return c.field==="title"&&c.status==="OK"});var aOk=sc.some(function(c){return c.field==="authors"&&(c.status==="OK"||c.status==="WARN")});
+if(tOk&&aOk){cf.push(src);for(var ci=0;ci<r.checks.length;ci++){var c=r.checks[ci];if(c.source===src&&c.field==="year"){if(c.status==="FAIL"){c.status="WARN";c.detail+=" (downgraded)"}if(c.status==="WARN"&&c.detail.indexOf("off by 1")>=0){c.status="OK";c.detail+=" (confirmed)"}}}}}
+if(cf.length){r.overall="OK";for(var ci=0;ci<r.checks.length;ci++){var c=r.checks[ci];if(cf.indexOf(c.source)<0)continue;if(c.status==="FAIL"){r.overall="FAIL";break}if(c.status==="WARN"&&r.overall==="OK")r.overall="WARN"}}
+// Kill-shot
 if(ph&&r.overall==="OK"){r.overall="WARN";ac("hallucination_risk","WARN","phantom ID detected","bibguard")}
 return r}
 
-window.runDemo=async function(){const input=document.getElementById("demoInput").value.trim();if(!input)return;const btn=document.getElementById("demoBtn");const status=document.getElementById("demoStatus");const area=document.getElementById("demoResults");btn.disabled=true;area.innerHTML="";const entries=parseBib(input);if(!entries.length){status.textContent="No BibTeX entries found.";btn.disabled=false;return}
-const t0=Date.now();const results=[];for(let i=0;i<entries.length;i++){status.textContent=`[${i+1}/${entries.length}] ${entries[i].key}...`;const r=await verify(entries[i],s=>{status.textContent=`[${i+1}/${entries.length}] ${entries[i].key} ${s}`});results.push(r)}
-const elapsed=((Date.now()-t0)/1000).toFixed(1);const ok=results.filter(r=>r.overall==="OK").length;const warn=results.filter(r=>r.overall==="WARN").length;const fail=results.filter(r=>r.overall==="FAIL").length;
-let h=`<div class="demo-summary"><span class="ok">OK ${ok}</span><span class="warn">WARN ${warn}</span><span class="fail">FAIL ${fail}</span><span style="color:var(--text-muted)">${entries.length} entries in ${elapsed}s</span></div>`;
-const sorted=[...results].sort((a,b)=>({FAIL:0,WARN:1,OK:2}[a.overall]-{FAIL:0,WARN:1,OK:2}[b.overall]));
-for(const r of sorted){const cls=r.overall==="FAIL"?"e-fail":r.overall==="WARN"?"e-warn":"e-ok";const icon=r.overall==="FAIL"?"&#x274C;":r.overall==="WARN"?"&#x26A0;&#xFE0F;":"&#x2705;";const src=r.sourcesHit.length?r.sourcesHit.join(", "):"no match";const issues=r.checks.filter(c=>c.status!=="OK");
-h+=`<div class="demo-entry ${cls}"><div class="demo-entry-head"><span class="demo-entry-key">${r.key}</span><span>${icon} ${r.overall}</span></div><div class="demo-entry-title">${r.title.slice(0,70)}${r.title.length>70?"...":""} (${src})</div>`;
-if(issues.length){for(const c of issues){const cc=c.status==="FAIL"?"demo-check-fail":"demo-check-warn";h+=`<div class="demo-check ${cc}">${c.status}: ${c.field} — ${c.detail}</div>`}}
-h+=`</div>`}
-area.innerHTML=h;status.textContent=`Done`;btn.disabled=false}
+// ── UI ──
+document.getElementById("demoBtn").addEventListener("click",async function(){
+var input=document.getElementById("demoInput").value.trim();
+if(!input)return;
+var btn=document.getElementById("demoBtn");
+var status=document.getElementById("demoStatus");
+var area=document.getElementById("demoResults");
+btn.disabled=true;area.innerHTML="";
+var entries=parseBib(input);
+if(!entries.length){status.textContent="No BibTeX entries found.";btn.disabled=false;return}
+var t0=Date.now();var results=[];
+for(var i=0;i<entries.length;i++){
+  status.textContent="["+(i+1)+"/"+entries.length+"] "+entries[i].key+"...";
+  var r=await verify(entries[i],function(s){status.textContent="["+(i+1)+"/"+entries.length+"] "+entries[i].key+" "+s});
+  results.push(r)}
+var elapsed=((Date.now()-t0)/1000).toFixed(1);
+var ok=0,warn=0,fail=0;results.forEach(function(r){if(r.overall==="OK")ok++;else if(r.overall==="WARN")warn++;else fail++});
+var h='<div class="demo-summary"><span class="ok">\u2705 OK '+ok+'</span><span class="warn">\u26A0\uFE0F WARN '+warn+'</span><span class="fail">\u274C FAIL '+fail+'</span><span style="color:var(--text-muted);margin-left:auto">'+entries.length+' entries in '+elapsed+'s</span></div>';
+var sorted=results.slice().sort(function(a,b){var o={FAIL:0,WARN:1,OK:2};return o[a.overall]-o[b.overall]});
+for(var j=0;j<sorted.length;j++){
+  var r=sorted[j];var cls=r.overall==="FAIL"?"e-fail":r.overall==="WARN"?"e-warn":"e-ok";
+  var icon=r.overall==="FAIL"?"\u274C":r.overall==="WARN"?"\u26A0\uFE0F":"\u2705";
+  var src=r.sourcesHit.length?r.sourcesHit.join(", "):"no match";
+  var issues=r.checks.filter(function(c){return c.status!=="OK"});
+  h+='<div class="demo-entry '+cls+'"><div class="demo-entry-head"><span class="demo-entry-key">'+r.key+'</span><span>'+icon+' '+r.overall+'</span></div>';
+  h+='<div class="demo-entry-title">'+r.title.slice(0,70)+(r.title.length>70?"...":"")+'</div>';
+  h+='<div style="color:var(--text-muted);font-size:0.75rem;margin-bottom:4px">Sources: '+src+'</div>';
+  if(issues.length){for(var ci=0;ci<issues.length;ci++){var c=issues[ci];h+='<div class="demo-check '+(c.status==="FAIL"?"demo-check-fail":"demo-check-warn")+'">'+c.status+': '+c.field+' \u2014 '+c.detail+'</div>'}}
+  h+='</div>'}
+area.innerHTML=h;status.textContent="Done";btn.disabled=false});
 </script>
 
 </body>
