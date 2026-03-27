@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.1] - 2026-03-27
+
+### Added
+- **Parallel verification** via `--workers N` / `-w N` CLI flag
+- `concurrent.futures.ThreadPoolExecutor` for concurrent entry verification
+- Thread-safe per-source rate limiting (`threading.Lock` per API source)
+- `workers` and `progress` callback parameters in `verify_bib()` Python API
+- Auto-selects worker count for files with >8 entries (default: `min(4, cpu_count)`)
+
+### Performance
+- 58-entry golden benchmark: **95.8s → 62.6s** with 4 workers (1.5× speedup)
+- Speedup increases with larger files as more entries interleave across rate-limited sources
+
 ## [0.3.0] - 2026-03-25
 
 ### Changed

@@ -66,6 +66,9 @@ bibguard references.bib --tex main.tex
 # Save report + auto-fix
 bibguard references.bib --tex main.tex --out report.md --fix fixed.bib
 
+# Parallel verification (auto-selects workers for large files)
+bibguard references.bib -w 4
+
 # JSON output (for CI pipelines)
 bibguard references.bib --json --out report.json
 ```
@@ -75,8 +78,8 @@ bibguard references.bib --json --out report.json
 ```python
 from bibguard import verify_bib, verify_entry
 
-# Verify entire .bib file
-results, report = verify_bib("references.bib", tex_path="main.tex")
+# Verify entire .bib file (parallel with 4 workers)
+results, report = verify_bib("references.bib", tex_path="main.tex", workers=4)
 for r in results:
     if r.overall != "OK":
         print(f"{r.overall}: {r.key} -- {r.title}")
@@ -203,6 +206,22 @@ See [CONTRIBUTORS.md](CONTRIBUTORS.md) for detailed attribution.
 - **Geoffrey Wang** -- Architecture, core algorithms, phantom-ID detection, kill-shot logic, benchmark design
 - **Claude (Anthropic)** -- Modular refactoring, output formatting, packaging, documentation
 
+## Support
+
+If you find bibguard useful, please consider giving it a **star** on GitHub — it helps others discover the project.
+
+[![Star on GitHub](https://img.shields.io/github/stars/GeoffreyWang1117/bibguard?style=social)](https://github.com/GeoffreyWang1117/bibguard)
+
+Have a bug report, feature request, or suggestion? [Open an issue](https://github.com/GeoffreyWang1117/bibguard/issues) — all feedback is welcome.
+
+## Roadmap
+
+- ~~**Parallel verification**~~ — **Shipped in v0.3.1**: `--workers N` flag for concurrent verification via thread pool
+- **Async I/O** — migrate from `requests` to `asyncio` + `aiohttp` for further speedup on 500+ entry files
+- **Batch API queries** — leverage Crossref, Semantic Scholar, and OpenAlex batch endpoints to reduce per-entry overhead
+- **Caching layer** — local cache for repeated lookups across runs
+- **Retracted paper detection** — integrate Retraction Watch database for L0-level retraction flagging
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE) for details.
@@ -239,5 +258,17 @@ npx bibguard paper.bib      # Node.js
 TypeScript 版零依赖，可直接在浏览器运行（5 个 API 全支持 CORS）。支持 Claude Code / Codex / Cursor。
 
 完整版请使用 [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef)（L0-L4，含语义 NLI 93.5%、贝叶斯风险评分）。
+
+### 支持项目
+
+如果 bibguard 对你有帮助，欢迎在 GitHub 上点个 **Star** ⭐，帮助更多人发现这个工具。有建议或问题？欢迎[提 Issue](https://github.com/GeoffreyWang1117/bibguard/issues)。
+
+### 路线图
+
+- ~~**并行验证**~~ — **已在 v0.3.1 实现**：`--workers N` 线程池并行验证
+- **异步 I/O** — 从 `requests` 迁移到 `asyncio` + `aiohttp`，进一步加速 500+ 条目文件
+- **批量 API 查询** — 利用 Crossref、Semantic Scholar、OpenAlex 批量接口减少逐条开销
+- **本地缓存** — 跨运行缓存已验证条目
+- **撤稿论文检测** — 对接 Retraction Watch 数据库
 
 </details>

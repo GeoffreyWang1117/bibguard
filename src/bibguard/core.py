@@ -7,7 +7,7 @@ Phantom-ID detection with kill-shot override.
 from __future__ import annotations
 
 import re
-from typing import Optional
+from typing import Callable, Optional
 
 from bibguard.matching import (
     extract_first_surname,
@@ -260,18 +260,67 @@ def verify_entry(entry: dict, verbose: bool = False) -> VerificationResult:
 
 
 def verify_bib(bib_path: str, tex_path: str | None = None,
-               verbose: bool = False) -> tuple[list[VerificationResult], str]:
-    """Verify all entries in a .bib file. Returns (results, markdown_report)."""
+               verbose: bool = False,
+               workers: int = 1,
+               progress: Callable[[int, int, VerificationResult], None] | None = None,
+               ) -> tuple[list[VerificationResult], str]:
+    """Verify all entries in a .bib file. Returns (results, markdown_report).
+
+    Args:
+        workers: Number of concurrent threads (1 = sequential).
+        progress: Optional callback(index, total, result) called as each entry completes.
+    """
     from bibguard.duplicates import detect_duplicates
     from bibguard.report import generate_report
     from bibguard.tex_audit import audit_tex_bib
 
     entries = parse_bib(bib_path)
-    results = []
-    for entry in entries:
-        results.append(verify_entry(entry, verbose=verbose))
+
+    if workers <= 1:
+        results = []
+        for i, entry in enumerate(entries):
+            r = verify_entry(entry, verbose=verbose)
+            results.append(r)
+            if progress:
+                progress(i, len(entries), r)
+    else:
+        results = _verify_parallel(entries, verbose=verbose, workers=workers,
+                                   progress=progress)
 
     tex_issues = audit_tex_bib(tex_path, entries) if tex_path else []
     dup_issues = detect_duplicates(entries)
     report = generate_report(results, tex_issues, dup_issues)
     return results, report
+
+
+def _verify_parallel(
+    entries: list[dict],
+    verbose: bool = False,
+    workers: int = 4,
+    progress: Callable[[int, int, VerificationResult], None] | None = None,
+) -> list[VerificationResult]:
+    """Verify entries concurrently using a thread pool.
+
+    Results are returned in the same order as the input entries.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    total = len(entries)
+    results: list[VerificationResult | None] = [None] * total
+    completed = 0
+    lock = __import__("threading").Lock()
+
+    def _work(idx: int, entry: dict) -> tuple[int, VerificationResult]:
+        return idx, verify_entry(entry, verbose=verbose)
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {pool.submit(_work, i, e): i for i, e in enumerate(entries)}
+        for future in as_completed(futures):
+            idx, result = future.result()
+            results[idx] = result
+            if progress:
+                with lock:
+                    completed += 1
+                    progress(completed - 1, total, result)
+
+    return results  # type: ignore[return-value]

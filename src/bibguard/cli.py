@@ -3,18 +3,27 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
+import threading
 import time
 from pathlib import Path
 
 from bibguard.autofix import generate_fixed_bib
-from bibguard.core import VerificationResult, verify_entry
+from bibguard.core import VerificationResult, verify_bib
 from bibguard.duplicates import detect_duplicates
 from bibguard.parsers.bibtex import parse_bib
 from bibguard.report import generate_report
 from bibguard.tex_audit import audit_tex_bib
 
 _ICON = {"OK": "✅", "WARN": "⚠️ ", "FAIL": "❌"}
+
+
+def _default_workers(total: int) -> int:
+    """Pick a sensible default worker count based on entry count."""
+    if total <= 8:
+        return 1
+    return min(4, os.cpu_count() or 4)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -27,6 +36,8 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--out", help="Output report path (Markdown or JSON)")
     parser.add_argument("--fix", help="Output auto-fixed .bib path")
     parser.add_argument("--json", action="store_true", help="Output JSON instead of Markdown")
+    parser.add_argument("-w", "--workers", type=int, default=None,
+                        help="Concurrent workers (default: auto, 1=sequential)")
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("--version", action="version",
                         version=f"%(prog)s {_get_version()}")
@@ -40,19 +51,27 @@ def main(argv: list[str] | None = None) -> None:
     # -- Parse --
     entries = parse_bib(bib_path)
     total = len(entries)
+    workers = args.workers if args.workers is not None else _default_workers(total)
     print(f"\n  bibguard v{_get_version()}")
-    print(f"  {bib_path} — {total} entries\n")
+    mode = f"{workers} workers" if workers > 1 else "sequential"
+    print(f"  {bib_path} — {total} entries ({mode})\n")
 
     # -- Verify --
     t0 = time.time()
-    results: list[VerificationResult] = []
-    for i, entry in enumerate(entries):
-        key_display = entry["key"][:40]
-        print(f"  [{i+1:>{len(str(total))}}/{total}] {key_display:<40s}", end=" ", flush=True)
-        r = verify_entry(entry, verbose=args.verbose)
-        results.append(r)
+    _print_lock = threading.Lock()
+    _counter = [0]  # mutable counter for thread-safe progress
+
+    def _progress(idx: int, total_n: int, r: VerificationResult) -> None:
         sources = ", ".join(r.sources_hit) if r.sources_hit else "no match"
-        print(f"{_ICON[r.overall]} {sources}")
+        key_display = r.key[:40]
+        with _print_lock:
+            _counter[0] += 1
+            n = _counter[0]
+            print(f"  [{n:>{len(str(total_n))}}/{total_n}] {key_display:<40s} "
+                  f"{_ICON[r.overall]} {sources}")
+
+    results, _ = verify_bib(bib_path, tex_path=None, verbose=args.verbose,
+                            workers=workers, progress=_progress)
 
     elapsed = time.time() - t0
 
