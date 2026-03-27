@@ -34,6 +34,16 @@ Large language models hallucinate citations. Copy-paste errors corrupt metadata.
 - **Type-aware**: `@misc`/`@online` entries won't false-alarm as "hallucinated"
 - **Zero heavy dependencies**: Core requires only `requests` + `bibtexparser`
 
+## Choose Your Tool
+
+| If you are... | Use | Install |
+|---------------|-----|---------|
+| A researcher who prefers GUI | [**Desktop App**](https://github.com/GeoffreyWang1117/bibguard-desktop/releases) | Download `.dmg` / `.msi` / `.AppImage` — double-click, done |
+| A LaTeX user comfortable with terminal | [**Python CLI**](https://pypi.org/project/bibguard/) | `pip install bibguard` |
+| A JS/TS developer or CI pipeline | [**npm package**](https://www.npmjs.com/package/bibguard) | `npx bibguard paper.bib` |
+| Checking citations while browsing | [**Browser Extension**](https://github.com/GeoffreyWang1117/bibguard-ext) | Chrome / Firefox |
+| Need semantic NLI + Bayesian scoring | [**IntegriRef**](https://github.com/GeoffreyWang1117/IntegriRef) | Full L0–L4 stack |
+
 ## Install
 
 ```bash
@@ -237,7 +247,17 @@ Apache License 2.0. See [LICENSE](LICENSE) for details.
 
 # bibguard — 学术论文引用幻觉检测工具
 
-**一行命令，检测论文中的虚假引用。** Python + TypeScript + 浏览器扩展。
+**一行命令，检测论文中的虚假引用。** Python + TypeScript + 桌面端 + 浏览器扩展。
+
+### 选择你的工具
+
+| 使用场景 | 推荐方案 | 安装方式 |
+|---------|---------|---------|
+| 不想用命令行的研究者 | [**桌面版**](https://github.com/GeoffreyWang1117/bibguard-desktop/releases) | 下载 `.dmg` / `.msi` / `.AppImage`，双击即用 |
+| 熟悉终端的 LaTeX 用户 | [**Python CLI**](https://pypi.org/project/bibguard/) | `pip install bibguard` |
+| JS/TS 开发者或 CI 流水线 | [**npm 包**](https://www.npmjs.com/package/bibguard) | `npx bibguard paper.bib` |
+| 浏览网页时顺手检查引用 | [**浏览器扩展**](https://github.com/GeoffreyWang1117/bibguard-ext) | Chrome / Firefox |
+| 需要语义 NLI + 贝叶斯评分 | [**IntegriRef**](https://github.com/GeoffreyWang1117/IntegriRef) | 完整 L0–L4 验证栈 |
 
 ```bash
 pip install bibguard        # Python
