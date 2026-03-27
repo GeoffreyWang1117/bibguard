@@ -17,7 +17,7 @@ npx bibguard paper.bib      # Node.js (zero install)
 
 ![bibguard architecture](docs/figures/architecture.png)
 
-[Landing Page](https://geoffreywang1117.github.io/bibguard/) | [PyPI](https://pypi.org/project/bibguard/) | [npm](https://www.npmjs.com/package/bibguard) | [Browser Extension](https://github.com/GeoffreyWang1117/bibguard-ext) | [Changelog](CHANGELOG.md)
+[Landing Page](https://geoffreywang1117.github.io/bibguard/) | [PyPI](https://pypi.org/project/bibguard/) | [npm](https://www.npmjs.com/package/bibguard) | [Desktop App](https://github.com/GeoffreyWang1117/bibguard-desktop/releases) | [Browser Extension](https://github.com/GeoffreyWang1117/bibguard-ext) | [Changelog](CHANGELOG.md)
 
 ---
 
@@ -46,11 +46,14 @@ pip install bibguard[all]       # + RapidFuzz + PyMuPDF for PDF parsing
 npx bibguard paper.bib          # run directly
 npm install bibguard             # as library
 
+# Desktop app (no terminal needed)
+# Download from https://github.com/GeoffreyWang1117/bibguard-desktop/releases
+
 # Browser extension
 # Download from https://github.com/GeoffreyWang1117/bibguard-ext
 ```
 
-Python requires 3.9+. Node.js requires 18+.
+Python requires 3.9+. Node.js requires 18+. Desktop app requires no dependencies.
 
 ## Usage
 
@@ -196,6 +199,7 @@ pytest
 ## Related
 
 - [IntegriRef](https://github.com/GeoffreyWang1117/IntegriRef) -- Full L0-L4 verification stack with semantic NLI (93.5%), citation graph analysis, and Bayesian risk scoring
+- [bibguard-desktop](https://github.com/GeoffreyWang1117/bibguard-desktop) -- Cross-platform desktop app (Windows/macOS/Linux, no dependencies)
 - [bibguard-js](https://github.com/GeoffreyWang1117/bibguard-js) -- TypeScript version (zero deps, browser-native)
 - [bibguard-ext](https://github.com/GeoffreyWang1117/bibguard-ext) -- Chrome/Firefox browser extension
 
