@@ -15,7 +15,7 @@ CLI::
     bibguard paper.bib --tex main.tex --fix
 """
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 from bibguard.core import verify_bib, verify_entry, VerificationResult
 from bibguard.parsers.bibtex import parse_bib
@@ -23,6 +23,11 @@ from bibguard.tex_audit import audit_tex_bib
 from bibguard.duplicates import detect_duplicates
 from bibguard.report import generate_report
 from bibguard.autofix import generate_fixed_bib
+from bibguard.feedback import log_feedback, show_feedback, feedback_stats
+
+# PDF features (require pymupdf optional dependency)
+from bibguard.parsers.pdf import extract_refs_from_pdf, pdf_to_bib
+from bibguard.injection_detect import scan_pdf, format_scan_report, ScanResult
 
 __all__ = [
     "verify_bib",
@@ -33,4 +38,13 @@ __all__ = [
     "detect_duplicates",
     "generate_report",
     "generate_fixed_bib",
+    "log_feedback",
+    "show_feedback",
+    "feedback_stats",
+    # PDF features
+    "extract_refs_from_pdf",
+    "pdf_to_bib",
+    "scan_pdf",
+    "format_scan_report",
+    "ScanResult",
 ]
